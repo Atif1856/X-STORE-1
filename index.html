@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#f4f0e8">
+  <title>X STORE | Classic Finds, Everyday Value</title>
+  <meta name="description" content="Shop the latest products at X STORE. Cash on Delivery available in Pakistan.">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script defer src="config.js"></script><script defer src="app.js"></script>
+</head>
+<body>
+<header class="site-header">
+  <a class="brand" href="index.html"><span class="brand-x">X</span> STORE</a>
+  <nav><a href="#shop">Shop</a><a href="#about">About</a><a href="#contact">Contact</a></nav>
+  <a class="cart-link" href="cart.html">Cart <span id="cart-count" class="count">0</span></a>
+</header>
+<main>
+  <section class="hero">
+    <div class="hero-copy"><p class="eyebrow">A BETTER WAY TO SHOP</p><h1>Everyday essentials.<br><em>Elevated.</em></h1><p>Discover products picked for your everyday life, with simple shopping and Cash on Delivery.</p><a class="btn btn-dark" href="#shop">Explore the collection</a></div>
+    <div class="hero-art"><div class="hero-orbit"></div><div class="hero-stamp">X<br><small>STORE</small></div><p>CLASSIC • CONSIDERED • YOU</p></div>
+  </section>
+  <section id="shop" class="section">
+    <div class="section-heading"><div><p class="eyebrow">THE COLLECTION</p><h2>Shop products</h2></div><input id="search" class="search-input" placeholder="Search products..." aria-label="Search products"></div>
+    <div id="category-list" class="chips"></div>
+    <div id="product-grid" class="product-grid"><div class="notice">Loading products…</div></div>
+  </section>
+  <section id="about" class="editorial"><p class="eyebrow">THE X STORE STANDARD</p><h2>Simple choices.<br><em>Thoughtful shopping.</em></h2><p>Browse at your own pace, order securely, and choose Cash on Delivery at checkout.</p></section>
+  <section id="contact" class="contact-strip"><div><p class="eyebrow">NEED HELP?</p><h2>We're here to help.</h2></div><p>For order questions, contact the store using the details provided by the store administrator.</p></section>
+</main>
+<footer><a class="brand" href="index.html"><span class="brand-x">X</span> STORE</a><p>© <span id="year"></span> X STORE. All rights reserved.</p><div><a href="policy.html">Policies</a><a href="admin-login.html">Admin</a></div></footer>
+<div id="toast" class="toast" role="status"></div>
+</body></html>

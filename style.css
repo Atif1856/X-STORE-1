@@ -10,3 +10,60 @@
 .login-shell>.brand{justify-content:center}
 .login-shell>.brand .brand-logo{height:46px}
 @media(max-width:650px){.brand-logo{height:30px}.brand{gap:7px}.login-shell>.brand .brand-logo{height:40px}}
+
+/* X STORE - Animated Lava Sparks Effect */
+
+body::before,
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  background-repeat: repeat;
+  will-change: background-position;
+}
+
+body::before {
+  opacity: 0.38;
+  background-image:
+    radial-gradient(circle, rgba(255, 92, 0, .9) 0 1px, transparent 2px),
+    radial-gradient(circle, rgba(255, 150, 30, .8) 0 1.5px, transparent 2.5px),
+    radial-gradient(circle, rgba(190, 35, 0, .7) 0 1px, transparent 2px);
+  background-size: 130px 170px, 190px 230px, 240px 190px;
+  animation: lava-sparks 18s linear infinite;
+}
+
+body::after {
+  opacity: 0.22;
+  background-image:
+    radial-gradient(circle, rgba(255, 65, 0, .9) 0 1.5px, transparent 3px),
+    radial-gradient(circle, rgba(255, 180, 50, .8) 0 1px, transparent 2px);
+  background-size: 280px 300px, 160px 210px;
+  animation: lava-sparks-reverse 25s linear infinite;
+}
+
+@keyframes lava-sparks {
+  from {
+    background-position: 0 0, 50px 100px, 100px 0;
+  }
+  to {
+    background-position: -120px -450px, 180px -550px, -100px -350px;
+  }
+}
+
+@keyframes lava-sparks-reverse {
+  from {
+    background-position: 0 0, 100px 50px;
+  }
+  to {
+    background-position: 150px -500px, -100px -400px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body::before,
+  body::after {
+    animation: none;
+  }
+}

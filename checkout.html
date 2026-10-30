@@ -1,3 +1,71 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Checkout | X STORE</title><link rel="stylesheet" href="style.css"><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script defer src="config.js"></script><script defer src="app.js"></script></head>
-<body><header class="site-header"><a class="brand" href="index.html"><span class="brand-x">X</span> STORE</a><a href="cart.html">Back to cart</a></header><main class="page-wrap narrow"><p class="eyebrow">ALMOST THERE</p><h1>Checkout</h1><div class="panel"><form id="checkout-form" class="form-grid"><label>Full name<input name="full_name" required maxlength="120" autocomplete="name"></label><label>Phone number<input name="phone" required maxlength="30" autocomplete="tel" placeholder="03XXXXXXXXX"></label><label class="full">Email (optional)<input name="email" type="email" maxlength="180" autocomplete="email"></label><label class="full">Full delivery address<textarea name="address" required maxlength="500" rows="3" autocomplete="street-address"></textarea></label><label>City<input name="city" required maxlength="100" value="Karachi" autocomplete="address-level2"></label><label>Province<input name="province" required maxlength="100" value="Sindh" autocomplete="address-level1"></label><label class="full">Delivery instructions (optional)<textarea name="instructions" maxlength="300" rows="2"></textarea></label><div class="full payment-choice"><strong>Payment method</strong><p>Cash on Delivery (COD)</p><small>Pay the delivery person when your order arrives.</small></div><div id="checkout-total" class="full total-line"></div><button class="btn btn-dark full" type="submit">Place COD order</button></form><p class="small muted">Your order will be sent to X STORE. Please check your phone number and delivery address.</p></div></main><footer><a class="brand" href="index.html"><span class="brand-x">X</span> STORE</a><p>© X STORE</p></footer><div id="toast" class="toast" role="status"></div></body></html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#F1F0E8">
+<title>Checkout | X STORE</title>
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="logo.css?v=2">
+<link rel="stylesheet" href="theme.css?v=1">
+<style>
+.co-title{margin:6px 0 -4px;font-size:1.05rem}
+.co-hint{font-weight:400;color:var(--muted);font-size:.78rem}
+.coupon-label{display:block;font-weight:600;font-size:.86rem;margin:18px 0 7px}
+.coupon-row{display:flex;gap:8px}
+.coupon-row input{flex:1;min-width:0;padding:11px 12px;border:1px solid var(--border);background:#fff;border-radius:4px;text-transform:uppercase}
+.coupon-msg{font-size:.82rem;margin:8px 0 0;min-height:1.2em}
+.coupon-msg.ok{color:var(--green)}.coupon-msg.bad{color:var(--danger)}
+.sum-line{display:flex;justify-content:space-between;gap:12px;padding:9px 0;font-size:.88rem;border-bottom:1px solid var(--border)}
+.discount-text{color:var(--green)}
+.form-error{color:var(--danger);font-size:.88rem;margin:0}
+.xs-total-inline{font-size:1rem}
+.xs-modal{position:fixed;inset:0;background:rgba(23,23,23,.55);display:grid;place-items:center;padding:20px;z-index:200;backdrop-filter:blur(4px)}
+.xs-modal-card{background:#fff;border-radius:22px;max-width:440px;width:100%;padding:34px 28px;text-align:center;box-shadow:0 30px 80px rgba(0,0,0,.25);animation:xspop .35s cubic-bezier(.2,.9,.3,1.2)}
+.xs-modal-card h2{font-size:1.9rem;margin-bottom:10px}
+.xs-check{width:62px;height:62px;border-radius:50%;display:grid;place-items:center;background:#D93333;color:#fff;font-size:2rem;margin:0 auto 18px;box-shadow:0 10px 25px rgba(217,51,51,.35)}
+.xs-order-no{font-weight:700;font-size:1.1rem;letter-spacing:.06em;padding:12px;background:#F1F0E8;border-radius:10px;margin:16px 0 10px}
+.xs-modal-total{display:flex;justify-content:space-between;padding:10px 4px;margin-bottom:10px;border-bottom:1px solid var(--border)}
+@keyframes xspop{from{transform:scale(.85) translateY(20px);opacity:0}to{transform:none;opacity:1}}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script defer src="config.js"></script><script defer src="checkout.js?v=1"></script></head>
+<body>
+<header class="site-header"><a class="brand" href="index.html"><img class="brand-logo" src="xstore-logo.png" alt="X STORE logo" width="287" height="240"><span class="brand-word">STORE</span></a><a href="cart.html">Back to cart</a></header>
+<main class="page-wrap">
+<p class="eyebrow">ALMOST THERE</p><h1>Checkout</h1>
+<div class="checkout-layout">
+<form id="xs-checkout-form" class="panel form-grid">
+<h3 class="full co-title">Contact details</h3>
+<label>Full name<input name="full_name" required maxlength="100" autocomplete="name"></label>
+<label>Phone number<input name="phone" type="tel" inputmode="tel" required maxlength="20" autocomplete="tel" placeholder="03XXXXXXXXX"></label>
+<label>Second phone number <span class="co-hint">(optional)</span><input name="phone_2" type="tel" inputmode="tel" maxlength="20" placeholder="03XXXXXXXXX"></label>
+<label>Email <span class="co-hint">(optional)</span><input name="email" type="email" maxlength="120" autocomplete="email"></label>
+<h3 class="full co-title">Delivery address</h3>
+<label class="full">House / street address<textarea name="address" required maxlength="300" rows="2" autocomplete="street-address" placeholder="House no, street, building, floor"></textarea></label>
+<label>Area / locality<input name="area" maxlength="100" placeholder="e.g. Gulshan-e-Iqbal, Block 13"></label>
+<label>Nearby landmark <span class="co-hint">(optional)</span><input name="landmark" maxlength="150" placeholder="e.g. near the main mosque"></label>
+<label>City<input name="city" required maxlength="80" value="Karachi" autocomplete="address-level2"></label>
+<label>Province<select name="province" required autocomplete="address-level1"><option>Sindh</option><option>Punjab</option><option>Khyber Pakhtunkhwa</option><option>Balochistan</option><option>Islamabad Capital Territory</option><option>Azad Jammu and Kashmir</option><option>Gilgit-Baltistan</option></select></label>
+<label>Postal code <span class="co-hint">(optional)</span><input name="postal_code" inputmode="numeric" maxlength="12" autocomplete="postal-code"></label>
+<label>Delivery instructions <span class="co-hint">(optional)</span><input name="instructions" maxlength="300"></label>
+<div class="full payment-choice"><strong>Payment method</strong><p>Cash on Delivery (COD)</p><small>Pay the delivery person when your order arrives.</small></div>
+<div id="xs-total-inline" class="full xs-total-inline"></div>
+<p id="xs-form-error" class="full form-error hidden" role="alert"></p>
+<button id="xs-submit" class="btn btn-dark full" type="submit">Place COD order</button>
+</form>
+<aside class="panel summary-panel">
+<h2>Order summary</h2>
+<div id="xs-summary-lines"><div class="notice">Loading your cart…</div></div>
+<label class="coupon-label" for="xs-coupon">Coupon code</label>
+<div class="coupon-row"><input id="xs-coupon" maxlength="30" placeholder="Enter code" autocomplete="off"><button type="button" id="xs-coupon-btn" class="btn btn-outline btn-small">Apply</button></div>
+<p id="xs-coupon-msg" class="coupon-msg" role="status"></p>
+<div id="xs-totals"></div>
+<p class="small muted">Payment: Cash on Delivery</p>
+</aside>
+</div>
+</main>
+<footer><a class="brand" href="index.html"><img class="brand-logo" src="xstore-logo.png" alt="X STORE logo" width="287" height="240"><span class="brand-word">STORE</span></a><p>© X STORE</p></footer>
+<div id="toast" class="toast" role="status"></div>
+</body></html>

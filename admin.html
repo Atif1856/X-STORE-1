@@ -12,6 +12,7 @@
 <script defer src="delivery-admin.js?v=1"></script>
 </head>
 <body>
+
 <header class="site-header admin-header">
 <a class="brand" href="index.html"><span class="brand-x">X</span> STORE <small>ADMIN</small></a>
 <div class="admin-actions">
@@ -21,6 +22,7 @@
 </header>
 
 <main class="admin-wrap">
+
 <div class="admin-welcome">
 <div>
 <p class="eyebrow">STORE CONTROL</p>
@@ -44,139 +46,286 @@
 <button class="tab-btn" data-tab="orders">Orders</button>
 <button class="tab-btn" data-tab="categories">Categories</button>
 <button class="tab-btn" data-tab="delivery">Delivery Charges</button>
-  <button class="tab-btn" data-tab="coupons">Coupons</button>
+<button class="tab-btn" data-tab="coupons">Coupons</button>
 </div>
 
+<!-- PRODUCTS -->
 <section id="tab-products" class="admin-tab">
+
 <div class="admin-section-heading">
 <h2>Product management</h2>
 <button id="new-product-btn" class="btn btn-dark">+ Add product</button>
 </div>
 
 <form id="product-form" class="panel form-grid hidden">
+
 <input type="hidden" name="id">
-<label class="full">Product title<input name="title" required maxlength="180"></label>
-<label>Price (PKR)<input name="price" type="number" min="0" step="0.01" required></label>
-<label>Sale price (optional)<input name="sale_price" type="number" min="0" step="0.01"></label>
-<label>Category<select name="category_id" id="product-category"><option value="">Uncategorized</option></select></label>
-<label>Stock quantity<input name="stock" type="number" min="0" step="1" value="0" required></label>
-<label>SKU<input name="sku" maxlength="100"></label>
-<label>Product image<input name="image" type="file" accept="image/png,image/jpeg,image/webp"></label>
-<label class="full">Image URL (optional, use if not uploading)<input name="image_url" type="url" placeholder="https://..."></label>
-<label class="full">Short description<input name="short_description" maxlength="300"></label>
-<label class="full">Full description<textarea name="description" rows="4"></textarea></label>
-<label class="check-label full"><input name="is_featured" type="checkbox"> Feature this product on the homepage</label>
-<label class="check-label full"><input name="is_published" type="checkbox" checked> Publish product on storefront</label>
+
+<label class="full">
+Product title
+<input name="title" required maxlength="180">
+</label>
+
+<label>
+Price (PKR)
+<input name="price" type="number" min="0" step="0.01" required>
+</label>
+
+<label>
+Sale price (optional)
+<input name="sale_price" type="number" min="0" step="0.01">
+</label>
+
+<label>
+Category
+<select name="category_id" id="product-category">
+<option value="">Uncategorized</option>
+</select>
+</label>
+
+<label>
+Stock quantity
+<input name="stock" type="number" min="0" step="1" value="0" required>
+</label>
+
+<label>
+SKU
+<input name="sku" maxlength="100">
+</label>
+
+<label class="full">
+Main product image
+<input name="image" type="file" accept="image/png,image/jpeg,image/webp">
+<small>JPG, PNG or WebP. Maximum 5 MB.</small>
+</label>
+
+<label class="full">
+Additional product images
+<input name="media_images" type="file" accept="image/jpeg,image/png,image/webp" multiple>
+<small>Select multiple images. Maximum 10 images, 5 MB each.</small>
+</label>
+
+<label class="full">
+Product video
+<input name="media_video" type="file" accept="video/mp4,video/webm">
+<small>MP4 or WebM. Maximum 50 MB.</small>
+</label>
+
+<label class="full">
+Image URL (optional)
+<input name="image_url" type="url" placeholder="https://...">
+</label>
+
+<label class="full">
+Short description
+<input name="short_description" maxlength="300">
+</label>
+
+<label class="full">
+Full description
+<textarea name="description" rows="4"></textarea>
+</label>
+
+<label class="check-label full">
+<input name="is_featured" type="checkbox">
+Feature this product on the homepage
+</label>
+
+<label class="check-label full">
+<input name="is_published" type="checkbox" checked>
+Publish product on storefront
+</label>
+
 <div class="form-actions full">
 <button class="btn btn-dark" type="submit">Save product</button>
 <button id="cancel-product-btn" class="btn btn-outline" type="button">Cancel</button>
 </div>
+
 </form>
 
 <div class="table-wrap panel">
 <table>
-<thead><tr><th>Product</th><th>Price</th><th>Stock</th><th>Status</th><th>Actions</th></tr></thead>
-<tbody id="admin-products"><tr><td colspan="5">Loading…</td></tr></tbody>
+<thead>
+<tr>
+<th>Product</th>
+<th>Price</th>
+<th>Stock</th>
+<th>Status</th>
+<th>Actions</th>
+</tr>
+</thead>
+<tbody id="admin-products">
+<tr><td colspan="5">Loading…</td></tr>
+</tbody>
 </table>
 </div>
+
 </section>
 
+<!-- ORDERS -->
 <section id="tab-orders" class="admin-tab hidden">
+
 <div class="admin-section-heading">
 <h2>Order management</h2>
 <button id="refresh-orders" class="btn btn-outline">Refresh</button>
 </div>
+
 <div class="table-wrap panel">
 <table>
-<thead><tr><th>Order</th><th>Customer</th><th>Total</th><th>Payment</th><th>Status</th><th>Update</th><th>Details</th></tr></thead>
-<tbody id="admin-orders"><tr><td colspan="7">Loading…</td></tr></tbody>
+<thead>
+<tr>
+<th>Order</th>
+<th>Customer</th>
+<th>Total</th>
+<th>Payment</th>
+<th>Status</th>
+<th>Update</th>
+<th>Details</th>
+</tr>
+</thead>
+<tbody id="admin-orders">
+<tr><td colspan="7">Loading…</td></tr>
+</tbody>
 </table>
 </div>
+
 <div id="order-detail" class="panel hidden"></div>
+
 </section>
 
+<!-- CATEGORIES -->
 <section id="tab-categories" class="admin-tab hidden">
-<div class="admin-section-heading"><h2>Categories</h2></div>
+
+<div class="admin-section-heading">
+<h2>Categories</h2>
+</div>
+
 <form id="category-form" class="panel inline-form">
-<label>Category name<input name="name" required maxlength="100"></label>
+<label>
+Category name
+<input name="name" required maxlength="100">
+</label>
 <button class="btn btn-dark" type="submit">Add category</button>
 </form>
-<div id="category-admin-list" class="category-admin-list panel">Loading…</div>
+
+<div id="category-admin-list" class="category-admin-list panel">
+Loading…
+</div>
+
 </section>
 
+<!-- DELIVERY -->
 <section id="tab-delivery" class="admin-tab hidden">
+
 <div class="admin-section-heading">
 <h2>City-wise Delivery Charges</h2>
 </div>
+
 <div class="panel">
 <p class="muted">Add a city and set its delivery fee. Customers will enter their city at checkout.</p>
+
 <form id="delivery-charge-form" class="form-grid">
-<label>City<input name="city" required maxlength="80" placeholder="e.g. Karachi"></label>
-<label>Province<input name="province" required maxlength="80" placeholder="e.g. Sindh"></label>
-<label>Delivery fee (PKR)<input name="fee" type="number" min="0" step="0.01" required placeholder="Enter amount"></label>
+
+<label>
+City
+<input name="city" required maxlength="80" placeholder="e.g. Karachi">
+</label>
+
+<label>
+Province
+<input name="province" required maxlength="80" placeholder="e.g. Sindh">
+</label>
+
+<label>
+Delivery fee (PKR)
+<input name="fee" type="number" min="0" step="0.01" required placeholder="Enter amount">
+</label>
+
 <button class="btn btn-dark full" type="submit">Save delivery charge</button>
+
 </form>
+
 <div id="delivery-charge-message" class="notice hidden" role="status"></div>
 </div>
+
 <div class="table-wrap panel">
 <table>
-<thead><tr><th>City</th><th>Province</th><th>Fee</th><th>Status</th><th>Actions</th></tr></thead>
-<tbody id="delivery-charge-list"><tr><td colspan="5">Loading…</td></tr></tbody>
+<thead>
+<tr>
+<th>City</th>
+<th>Province</th>
+<th>Fee</th>
+<th>Status</th>
+<th>Actions</th>
+</tr>
+</thead>
+<tbody id="delivery-charge-list">
+<tr><td colspan="5">Loading…</td></tr>
+</tbody>
 </table>
 </div>
+
 </section>
+
+<!-- COUPONS -->
 <section id="tab-coupons" class="admin-tab hidden">
-  <h2>Coupon Management</h2>
 
-  <form id="coupon-form" class="admin-form">
-    <input type="hidden" name="id">
+<h2>Coupon Management</h2>
 
-    <label>Coupon Code</label>
-    <input name="code" placeholder="e.g. SAVE10" required>
+<form id="coupon-form" class="admin-form">
 
-    <label>Discount Type</label>
-    <select name="discount_type" required>
-      <option value="percent">Percentage (%)</option>
-      <option value="fixed">Fixed Amount (PKR)</option>
-    </select>
+<input type="hidden" name="id">
 
-    <label>Discount Value</label>
-    <input name="discount_value" type="number" min="1" step="0.01" required>
+<label>Coupon Code</label>
+<input name="code" placeholder="e.g. SAVE10" required>
 
-    <label>Minimum Order Amount (PKR)</label>
-    <input name="min_order_amount" type="number" min="0" value="0" required>
+<label>Discount Type</label>
+<select name="discount_type" required>
+<option value="percent">Percentage (%)</option>
+<option value="fixed">Fixed Amount (PKR)</option>
+</select>
 
-    <label>Maximum Uses (blank = unlimited)</label>
-    <input name="max_uses" type="number" min="1">
+<label>Discount Value</label>
+<input name="discount_value" type="number" min="1" step="0.01" required>
 
-    <label>Expiry Date (optional)</label>
-    <input name="expires_at" type="datetime-local">
+<label>Minimum Order Amount (PKR)</label>
+<input name="min_order_amount" type="number" min="0" value="0" required>
 
-    <button type="submit">Save Coupon</button>
-    <button type="button" id="cancel-coupon">Cancel</button>
-  </form>
+<label>Maximum Uses (blank = unlimited)</label>
+<input name="max_uses" type="number" min="1">
 
-  <div class="table-wrap">
-    <table>
-      <thead>
-        <tr>
-          <th>Code</th>
-          <th>Discount</th>
-          <th>Minimum</th>
-          <th>Uses</th>
-          <th>Expiry</th>
-          <th>Status</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody id="coupon-admin-list">
-        <tr><td colspan="7">No coupons loaded.</td></tr>
-      </tbody>
-    </table>
-  </div>
+<label>Expiry Date (optional)</label>
+<input name="expires_at" type="datetime-local">
+
+<button type="submit">Save Coupon</button>
+<button type="button" id="cancel-coupon">Cancel</button>
+
+</form>
+
+<div class="table-wrap">
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Discount</th>
+<th>Minimum</th>
+<th>Uses</th>
+<th>Expiry</th>
+<th>Status</th>
+<th>Actions</th>
+</tr>
+</thead>
+<tbody id="coupon-admin-list">
+<tr><td colspan="7">No coupons loaded.</td></tr>
+</tbody>
+</table>
+</div>
+
 </section>
+
 </main>
 
 <div id="toast" class="toast" role="status"></div>
+
 </body>
 </html>

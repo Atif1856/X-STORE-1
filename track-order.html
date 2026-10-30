@@ -1,0 +1,301 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Track Your Order | X STORE</title>
+
+  <link rel="stylesheet" href="style.css">
+
+  <style>
+    .tracking-wrap {
+      max-width: 650px;
+      margin: 55px auto;
+      padding: 20px;
+    }
+
+    .tracking-card {
+      background: #f1f0e8;
+      padding: 30px;
+      border-radius: 18px;
+      border: 1px solid #ddd;
+    }
+
+    .tracking-card h1 {
+      margin-bottom: 10px;
+    }
+
+    .tracking-form {
+      display: grid;
+      gap: 15px;
+      margin-top: 25px;
+    }
+
+    .tracking-form input {
+      width: 100%;
+      padding: 14px;
+      border: 1px solid #ccc;
+      border-radius: 9px;
+      font-size: 15px;
+    }
+
+    .tracking-form button {
+      padding: 14px;
+      background: #d93333;
+      color: white;
+      border: 0;
+      border-radius: 9px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .tracking-result {
+      margin-top: 25px;
+    }
+
+    .tracking-status {
+      background: white;
+      border-left: 5px solid #d93333;
+      padding: 17px;
+      border-radius: 9px;
+      margin-bottom: 15px;
+    }
+
+    .tracking-history {
+      display: grid;
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    .history-item {
+      background: white;
+      padding: 14px;
+      border-radius: 9px;
+      border-left: 3px solid #d93333;
+    }
+
+    .history-item small {
+      display: block;
+      color: #777;
+      margin-top: 5px;
+    }
+
+    .tracking-error {
+      color: #c62828;
+      margin-top: 15px;
+    }
+
+    .tracking-muted {
+      color: #666;
+      font-size: 13px;
+    }
+  </style>
+</head>
+
+<body>
+
+<header class="site-header">
+  <a class="brand" href="index.html">
+    <span class="brand-x">X</span> STORE
+  </a>
+</header>
+
+<main class="tracking-wrap">
+
+  <section class="tracking-card">
+
+    <p class="eyebrow">X STORE DELIVERY</p>
+
+    <h1>Track Your Order</h1>
+
+    <p class="tracking-muted">
+      Enter your order number and registered phone number
+      to check your delivery status.
+    </p>
+
+    <form id="tracking-form" class="tracking-form">
+
+      <input
+        type="text"
+        id="order-number"
+        placeholder="Order Number (e.g. XS-261030-ABC123)"
+        required
+      >
+
+      <input
+        type="tel"
+        id="phone-number"
+        placeholder="Registered Mobile Number"
+        required
+      >
+
+      <button type="submit" id="track-btn">
+        Track My Order
+      </button>
+
+    </form>
+
+    <p id="tracking-error" class="tracking-error"></p>
+
+    <div id="tracking-result" class="tracking-result"></div>
+
+  </section>
+
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+
+<script>
+(() => {
+  "use strict";
+
+  const cfg = window.XSTORE_CONFIG || {};
+
+  const form = document.getElementById("tracking-form");
+  const button = document.getElementById("track-btn");
+  const errorBox = document.getElementById("tracking-error");
+  const resultBox = document.getElementById("tracking-result");
+
+  const configured =
+    cfg.SUPABASE_URL &&
+    cfg.SUPABASE_ANON_KEY &&
+    window.supabase;
+
+  if (!configured) {
+    errorBox.textContent = "Store connection is not configured.";
+    button.disabled = true;
+    return;
+  }
+
+  const db = window.supabase.createClient(
+    cfg.SUPABASE_URL,
+    cfg.SUPABASE_ANON_KEY
+  );
+
+  const esc = value => String(value ?? "").replace(/[&<>"']/g, c => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+  }[c]));
+
+  const formatDate = value => {
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) return "Date unavailable";
+
+    return date.toLocaleString("en-PK", {
+      dateStyle: "medium",
+      timeStyle: "short",
+      timeZone: "Asia/Karachi"
+    });
+  };
+
+  const statusNames = {
+    pending_confirmation: "Order Placed",
+    confirmed: "Confirmed",
+    processing: "Processing",
+    shipped: "Shipped",
+    out_for_delivery: "Out for Delivery",
+    delivered: "Delivered",
+    cancelled: "Cancelled",
+    returned: "Returned"
+  };
+
+  form.addEventListener("submit", async event => {
+    event.preventDefault();
+
+    errorBox.textContent = "";
+    resultBox.innerHTML = "";
+
+    const orderNumber =
+      document.getElementById("order-number").value.trim();
+
+    const phone =
+      document.getElementById("phone-number").value.trim();
+
+    if (!orderNumber || !phone) {
+      errorBox.textContent = "Please enter both details.";
+      return;
+    }
+
+    button.disabled = true;
+    button.textContent = "Checking Order...";
+
+    try {
+      const { data, error } = await db.rpc("track_xstore_order", {
+        p_order_number: orderNumber,
+        p_phone: phone
+      });
+
+      if (error) throw error;
+
+      if (!data || !data.success) {
+        errorBox.textContent =
+          data?.message || "Order not found.";
+        return;
+      }
+
+      const status =
+        statusNames[data.status] || data.status;
+
+      const history = Array.isArray(data.history)
+        ? data.history
+        : [];
+
+      resultBox.innerHTML = `
+        <div class="tracking-status">
+          <p class="tracking-muted">ORDER NUMBER</p>
+          <strong>${esc(data.order_number)}</strong>
+
+          <p class="tracking-muted" style="margin-top:15px">
+            CURRENT ORDER STATUS
+          </p>
+
+          <h2>${esc(status)}</h2>
+
+          <p class="tracking-muted">
+            Last updated: ${esc(formatDate(data.updated_at))}
+          </p>
+        </div>
+
+        <h3>Order Progress</h3>
+
+        <div class="tracking-history">
+          ${history.length ? history.map(item => `
+            <div class="history-item">
+              <strong>
+                ${esc(statusNames[item.status] || item.status)}
+              </strong>
+
+              ${item.note ? `<p>${esc(item.note)}</p>` : ""}
+
+              <small>${esc(formatDate(item.date))}</small>
+            </div>
+          `).join("") : `
+            <p class="tracking-muted">
+              No status history is available yet.
+            </p>
+          `}
+        </div>
+      `;
+
+    } catch (error) {
+      console.error("Tracking error:", error);
+
+      errorBox.textContent =
+        "Could not check your order. Please try again.";
+    } finally {
+      button.disabled = false;
+      button.textContent = "Track My Order";
+    }
+  });
+
+})();
+</script>
+
+</body>
+</html>

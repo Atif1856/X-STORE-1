@@ -1,3 +1,4 @@
+
 (() => {
   const cfg = window.XSTORE_CONFIG || {};
   const configured = cfg.SUPABASE_URL && cfg.SUPABASE_ANON_KEY &&
@@ -17,54 +18,519 @@
   const productPrice = p => Number(p.sale_price && Number(p.sale_price)>0 && Number(p.sale_price)<Number(p.price) ? p.sale_price : p.price);
   const imgFallback = "data:image/svg+xml,"+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="600" height="700"><rect width="100%" height="100%" fill="#eee9df"/><text x="50%" y="50%" text-anchor="middle" fill="#171717" font-family="Georgia" font-size="52">X STORE</text></svg>');
   const imageOf = p => p.image_url || (p.image_path && sb ? sb.storage.from("product-images").getPublicUrl(p.image_path).data.publicUrl : "") || imgFallback;
-  async function productsQuery(){ if(!sb) return {data:[],error:new Error("Supabase is not configured.")}; return sb.from("products").select("id,title,slug,description,short_description,price,sale_price,sku,stock,image_url,image_path,is_featured,is_published,category_id,categories(name)").eq("is_published",true).order("created_at",{ascending:false}); }
-  function productCard(p){return `<article class="product-card"><a class="product-image" href="product.html?id=${encodeURIComponent(p.id)}"><img loading="lazy" src="${esc(imageOf(p))}" alt="${esc(p.title)}" onerror="this.src='${imgFallback}'">${p.is_featured?'<span class="product-tag">FEATURED</span>':''}</a><div class="product-info"><p class="product-category">${esc(p.categories?.name||"X STORE")}</p><h3><a href="product.html?id=${encodeURIComponent(p.id)}">${esc(p.title)}</a></h3><p class="product-desc">${esc(p.short_description||p.description||"")}</p><div class="price-row"><strong>${money(productPrice(p))}</strong>${Number(p.sale_price)>0&&Number(p.sale_price)<Number(p.price)?`<del>${money(p.price)}</del>`:""}</div><button class="btn btn-dark btn-block add-cart" data-id="${esc(p.id)}" ${Number(p.stock)<=0?"disabled":""}>${Number(p.stock)<=0?"Out of stock":"Add to cart"}</button></div></article>`;}
+
+  async function productsQuery(){
+    if(!sb) return {data:[],error:new Error("Supabase is not configured.")};
+    return sb.from("products").select("id,title,slug,description,short_description,price,sale_price,sku,stock,image_url,image_path,is_featured,is_published,category_id,categories(name)").eq("is_published",true).order("created_at",{ascending:false});
+  }
+
+  function productCard(p){
+    return `<article class="product-card"><a class="product-image" href="product.html?id=${encodeURIComponent(p.id)}"><img loading="lazy" src="${esc(imageOf(p))}" alt="${esc(p.title)}" onerror="this.src='${imgFallback}'">${p.is_featured?'<span class="product-tag">FEATURED</span>':''}</a><div class="product-info"><p class="product-category">${esc(p.categories?.name||"X STORE")}</p><h3><a href="product.html?id=${encodeURIComponent(p.id)}">${esc(p.title)}</a></h3><p class="product-desc">${esc(p.short_description||p.description||"")}</p><div class="price-row"><strong>${money(productPrice(p))}</strong>${Number(p.sale_price)>0&&Number(p.sale_price)<Number(p.price)?`<del>${money(p.price)}</del>`:""}</div><button class="btn btn-dark btn-block add-cart" data-id="${esc(p.id)}" ${Number(p.stock)<=0?"disabled":""}>${Number(p.stock)<=0?"Out of stock":"Add to cart"}</button></div></article>`;
+  }
+
   async function renderHome(){
     const grid=$("#product-grid"); if(!grid)return;
     if(!sb){grid.innerHTML='<div class="notice">Connect Supabase to load your products. Follow the README setup guide.</div>';announceConfig();return;}
-    const {data,error}=await productsQuery(); if(error){grid.innerHTML='<div class="notice">Could not load products. Check the database setup and public product policies.</div>';return;}
+    const {data,error}=await productsQuery();
+    if(error){grid.innerHTML='<div class="notice">Could not load products. Check the database setup and public product policies.</div>';return;}
     let all=data||[], cats=[...new Set(all.map(p=>p.categories?.name).filter(Boolean))], active="All";
     const catEl=$("#category-list"), search=$("#search");
-    const draw=()=>{const q=(search?.value||"").toLowerCase();const filtered=all.filter(p=>(active==="All"||p.categories?.name===active)&&`${p.title} ${p.description||""} ${p.categories?.name||""}`.toLowerCase().includes(q));grid.innerHTML=filtered.length?filtered.map(productCard).join(""):'<div class="notice">No products found. Add products from the admin panel.</div>';};
+    const draw=()=>{
+      const q=(search?.value||"").toLowerCase();
+      const filtered=all.filter(p=>(active==="All"||p.categories?.name===active)&&`${p.title} ${p.description||""} ${p.categories?.name||""}`.toLowerCase().includes(q));
+      grid.innerHTML=filtered.length?filtered.map(productCard).join(""):'<div class="notice">No products found. Add products from the admin panel.</div>';
+    };
     if(catEl)catEl.innerHTML=["All",...cats].map(c=>`<button class="chip ${c==="All"?"selected":""}" data-cat="${esc(c)}">${esc(c)}</button>`).join("");
-    catEl?.addEventListener("click",e=>{const b=e.target.closest("[data-cat]");if(!b)return;active=b.dataset.cat;$$(".chip",catEl).forEach(x=>x.classList.toggle("selected",x===b));draw();});
-    search?.addEventListener("input",draw); draw();
+    catEl?.addEventListener("click",e=>{
+      const b=e.target.closest("[data-cat]");if(!b)return;
+      active=b.dataset.cat;
+      $$(".chip",catEl).forEach(x=>x.classList.toggle("selected",x===b));
+      draw();
+    });
+    search?.addEventListener("input",draw);
+    draw();
   }
-  async function addProductToCart(id){ if(!sb){announceConfig();return;} const {data,error}=await sb.from("products").select("id,title,slug,price,sale_price,stock,image_url,image_path,is_published").eq("id",id).eq("is_published",true).single();if(error||!data){toast("Product is unavailable.");return;}const cart=getCart(), found=cart.find(x=>x.id===id);if(found){if(found.qty+1>Number(data.stock)){toast("Not enough stock available.");return;}found.qty++;}else{if(Number(data.stock)<1){toast("Out of stock.");return;}cart.push({id:data.id,title:data.title,price:productPrice(data),image_url:data.image_url,image_path:data.image_path,qty:1});}setCart(cart);toast("Added to cart.");}
-  async function renderCart(){const box=$("#cart-items"),sum=$("#cart-summary");if(!box||!sum)return;updateCartCount();const cart=getCart();if(!cart.length){box.innerHTML='<p>Your cart is empty.</p><a class="btn btn-dark" href="index.html#shop">Browse products</a>';sum.innerHTML="";return;}
-    if(!sb){box.innerHTML='<div class="notice">Supabase setup is required to verify product prices and stock.</div>';sum.innerHTML="";return;}
-    const ids=cart.map(x=>x.id);const {data,error}=await sb.from("products").select("id,title,price,sale_price,stock,image_url,image_path,is_published").in("id",ids);
-    if(error){box.innerHTML='<div class="notice">Could not verify cart items.</div>';return;}const map=new Map((data||[]).map(p=>[p.id,p]));let valid=[];
-    for(const item of cart){const p=map.get(item.id);if(!p||!p.is_published)continue;valid.push({...item,title:p.title,price:productPrice(p),stock:p.stock,image_url:p.image_url,image_path:p.image_path});}
-    setCart(valid);const subtotal=valid.reduce((n,p)=>n+p.price*p.qty,0);
+
+  async function addProductToCart(id){
+    if(!sb){announceConfig();return;}
+    const {data,error}=await sb.from("products").select("id,title,slug,price,sale_price,stock,image_url,image_path,is_published").eq("id",id).eq("is_published",true).single();
+    if(error||!data){toast("Product is unavailable.");return;}
+    const cart=getCart(), found=cart.find(x=>x.id===id);
+    if(found){
+      if(found.qty+1>Number(data.stock)){toast("Not enough stock available.");return;}
+      found.qty++;
+    }else{
+      if(Number(data.stock)<1){toast("Out of stock.");return;}
+      cart.push({id:data.id,title:data.title,price:productPrice(data),image_url:data.image_url,image_path:data.image_path,qty:1});
+    }
+    setCart(cart);toast("Added to cart.");
+  }
+
+  async function renderCart(){
+    const box=$("#cart-items"),sum=$("#cart-summary");
+    if(!box||!sum)return;
+    updateCartCount();
+    const cart=getCart();
+    if(!cart.length){
+      box.innerHTML='<p>Your cart is empty.</p><a class="btn btn-dark" href="index.html#shop">Browse products</a>';
+      sum.innerHTML="";return;
+    }
+    if(!sb){
+      box.innerHTML='<div class="notice">Supabase setup is required to verify product prices and stock.</div>';
+      sum.innerHTML="";return;
+    }
+    const ids=cart.map(x=>x.id);
+    const {data,error}=await sb.from("products").select("id,title,price,sale_price,stock,image_url,image_path,is_published").in("id",ids);
+    if(error){box.innerHTML='<div class="notice">Could not verify cart items.</div>';return;}
+    const map=new Map((data||[]).map(p=>[p.id,p]));
+    let valid=[];
+    for(const item of cart){
+      const p=map.get(item.id);
+      if(!p||!p.is_published)continue;
+      valid.push({...item,title:p.title,price:productPrice(p),stock:p.stock,image_url:p.image_url,image_path:p.image_path});
+    }
+    setCart(valid);
+    const subtotal=valid.reduce((n,p)=>n+p.price*p.qty,0);
     box.innerHTML=valid.length?valid.map(p=>`<div class="cart-item"><img src="${esc(imageOf(p))}" alt=""><div class="cart-item-main"><strong>${esc(p.title)}</strong><span>${money(p.price)} each</span><div class="qty-control"><button data-qty="-1" data-id="${esc(p.id)}" aria-label="Decrease quantity">−</button><span>${p.qty}</span><button data-qty="1" data-id="${esc(p.id)}" data-stock="${Number(p.stock)}" aria-label="Increase quantity">+</button><button class="text-button remove-item" data-remove="${esc(p.id)}">Remove</button></div></div><strong>${money(p.price*p.qty)}</strong></div>`).join(""):'<p>Your cart is empty or products are no longer available.</p>';
     sum.innerHTML=`<h2>Order summary</h2><div class="total-line"><span>Subtotal</span><strong>${money(subtotal)}</strong></div><div class="total-line"><span>Shipping</span><span>${money(cfg.SHIPPING_FEE||0)}</span></div><div class="total-line grand-total"><span>Total</span><strong>${money(subtotal+Number(cfg.SHIPPING_FEE||0))}</strong></div><a class="btn btn-dark btn-block ${valid.length?"":"disabled"}" href="checkout.html">Proceed to checkout</a><p class="small muted">Payment: Cash on Delivery</p>`;
-    box.onclick=e=>{const q=e.target.closest("[data-qty]"),r=e.target.closest("[data-remove]");if(r){setCart(getCart().filter(x=>x.id!==r.dataset.remove));renderCart();}else if(q){const c=getCart(),i=c.find(x=>x.id===q.dataset.id);if(!i)return;const next=i.qty+Number(q.dataset.qty);if(next<1){setCart(c.filter(x=>x.id!==i.id));}else if(next>Number(q.dataset.stock||999999)){toast("Stock limit reached.");return;}else{i.qty=next;setCart(c);}renderCart();}};
+    box.onclick=e=>{
+      const q=e.target.closest("[data-qty]"),r=e.target.closest("[data-remove]");
+      if(r){setCart(getCart().filter(x=>x.id!==r.dataset.remove));renderCart();}
+      else if(q){
+        const c=getCart(),i=c.find(x=>x.id===q.dataset.id);if(!i)return;
+        const next=i.qty+Number(q.dataset.qty);
+        if(next<1){setCart(c.filter(x=>x.id!==i.id));}
+        else if(next>Number(q.dataset.stock||999999)){toast("Stock limit reached.");return;}
+        else{i.qty=next;setCart(c);}
+        renderCart();
+      }
+    };
   }
-  async function renderCheckout(){const form=$("#checkout-form");if(!form)return;const cart=getCart();const totalEl=$("#checkout-total");if(!cart.length){form.innerHTML='<div class="full notice">Your cart is empty. <a href="index.html#shop">Shop products</a></div>';return;}if(!sb){announceConfig();form.insertAdjacentHTML("afterbegin",'<div class="full notice">Connect Supabase before accepting orders.</div>');return;}const sub=cart.reduce((n,x)=>n+Number(x.price)*x.qty,0);if(totalEl)totalEl.innerHTML=`<span>Subtotal: ${money(sub)}</span><span>Shipping: ${money(cfg.SHIPPING_FEE||0)}</span><strong>Total: ${money(sub+Number(cfg.SHIPPING_FEE||0))}</strong>`;
-    form.addEventListener("submit",async e=>{e.preventDefault();const btn=$('button[type="submit"]',form);btn.disabled=true;btn.textContent="Submitting order…";try{
-      const {data:products,error:pe}=await sb.from("products").select("id,title,sku,price,sale_price,stock,is_published").in("id",cart.map(x=>x.id));if(pe)throw pe;const map=new Map((products||[]).map(p=>[p.id,p]));let subtotal=0,items=[];
-      for(const c of cart){const p=map.get(c.id);if(!p||!p.is_published)throw new Error(`${c.title} is no longer available.`);if(Number(p.stock)<c.qty)throw new Error(`Not enough stock for ${p.title}.`);const price=productPrice(p);subtotal+=price*c.qty;items.push({product_id:p.id,product_title:p.title,sku:p.sku||null,unit_price:price,quantity:c.qty,line_total:price*c.qty});}
-      const fd=new FormData(form);const orderNo="XS-"+Date.now().toString().slice(-9);const shipping=Number(cfg.SHIPPING_FEE||0);
-      const orderPayload={order_number:orderNo,customer_name:String(fd.get("full_name")).trim(),customer_phone:String(fd.get("phone")).trim(),customer_email:String(fd.get("email")||"").trim()||null,delivery_address:String(fd.get("address")).trim(),city:String(fd.get("city")).trim(),province:String(fd.get("province")).trim(),delivery_instructions:String(fd.get("instructions")||"").trim()||null,payment_method:"COD",payment_status:"pending_collection",order_status:"pending_confirmation",subtotal,shipping_fee:shipping,discount:0,total:subtotal+shipping};
-      const {data:order,error:oe}=await sb.from("orders").insert(orderPayload).select("id,order_number").single();if(oe)throw oe;
-      const rows=items.map(i=>({...i,order_id:order.id}));const {error:ie}=await sb.from("order_items").insert(rows);if(ie){await sb.from("orders").delete().eq("id",order.id);throw ie;}
-      sessionStorage.setItem("xstore_last_order",order.order_number);setCart([]);location.href="order-success.html";
-    }catch(err){toast(err.message||"Could not place order. Please try again.");btn.disabled=false;btn.textContent="Place COD order";}}, {once:true});
+
+  async function renderCheckout(){
+    const form=$("#checkout-form");if(!form)return;
+    const cart=getCart(),totalEl=$("#checkout-total");
+    if(!cart.length){form.innerHTML='<div class="full notice">Your cart is empty. <a href="index.html#shop">Shop products</a></div>';return;}
+    if(!sb){announceConfig();form.insertAdjacentHTML("afterbegin",'<div class="full notice">Connect Supabase before accepting orders.</div>');return;}
+    const sub=cart.reduce((n,x)=>n+Number(x.price)*x.qty,0);
+    if(totalEl)totalEl.innerHTML=`<span>Subtotal: ${money(sub)}</span><span>Shipping: ${money(cfg.SHIPPING_FEE||0)}</span><strong>Total: ${money(sub+Number(cfg.SHIPPING_FEE||0))}</strong>`;
+    form.addEventListener("submit",async e=>{
+      e.preventDefault();
+      const btn=$('button[type="submit"]',form);btn.disabled=true;btn.textContent="Submitting order…";
+      try{
+        const {data:products,error:pe}=await sb.from("products").select("id,title,sku,price,sale_price,stock,is_published").in("id",cart.map(x=>x.id));
+        if(pe)throw pe;
+        const map=new Map((products||[]).map(p=>[p.id,p]));
+        let subtotal=0,items=[];
+        for(const c of cart){
+          const p=map.get(c.id);
+          if(!p||!p.is_published)throw new Error(`${c.title} is no longer available.`);
+          if(Number(p.stock)<c.qty)throw new Error(`Not enough stock for ${p.title}.`);
+          const price=productPrice(p);subtotal+=price*c.qty;
+          items.push({product_id:p.id,product_title:p.title,sku:p.sku||null,unit_price:price,quantity:c.qty,line_total:price*c.qty});
+        }
+        const fd=new FormData(form),orderNo="XS-"+Date.now().toString().slice(-9),shipping=Number(cfg.SHIPPING_FEE||0);
+        const orderPayload={order_number:orderNo,customer_name:String(fd.get("full_name")).trim(),customer_phone:String(fd.get("phone")).trim(),customer_email:String(fd.get("email")||"").trim()||null,delivery_address:String(fd.get("address")).trim(),city:String(fd.get("city")).trim(),province:String(fd.get("province")).trim(),delivery_instructions:String(fd.get("instructions")||"").trim()||null,payment_method:"COD",payment_status:"pending_collection",order_status:"pending_confirmation",subtotal,shipping_fee:shipping,discount:0,total:subtotal+shipping};
+        const {data:order,error:oe}=await sb.from("orders").insert(orderPayload).select("id,order_number").single();
+        if(oe)throw oe;
+        const rows=items.map(i=>({...i,order_id:order.id}));
+        const {error:ie}=await sb.from("order_items").insert(rows);
+        if(ie){await sb.from("orders").delete().eq("id",order.id);throw ie;}
+        sessionStorage.setItem("xstore_last_order",order.order_number);setCart([]);location.href="order-success.html";
+      }catch(err){toast(err.message||"Could not place order. Please try again.");btn.disabled=false;btn.textContent="Place COD order";}
+    },{once:true});
   }
-  async function requireAdmin(){if(!sb){location.href="admin-login.html";return null;}const {data:{session}}=await sb.auth.getSession();if(!session){location.href="admin-login.html";return null;}const {data:profile,error}=await sb.from("profiles").select("role").eq("id",session.user.id).single();if(error||profile?.role!=="admin"){await sb.auth.signOut();alert("This account is not authorized as an administrator.");location.href="admin-login.html";return null;}return session.user;}
-  async function loginAdmin(){const form=$("#admin-login-form");if(!form)return;form.addEventListener("submit",async e=>{e.preventDefault();const btn=$('button[type="submit"]',form),msg=$("#login-message");btn.disabled=true;msg.textContent="Signing in…";if(!sb){msg.textContent="Setup required: configure Supabase in config.js.";btn.disabled=false;return;}const fd=new FormData(form);const {error}=await sb.auth.signInWithPassword({email:fd.get("email"),password:fd.get("password")});if(error){msg.textContent="Sign-in failed. Check your credentials and Supabase setup.";btn.disabled=false;return;}const {data:{user}}=await sb.auth.getUser();const {data:profile,error:pe}=await sb.from("profiles").select("role").eq("id",user.id).single();if(pe||profile?.role!=="admin"){await sb.auth.signOut();msg.textContent="This account is not authorized for admin access.";btn.disabled=false;return;}location.href="admin.html";});}
-  async function adminInit(){if(!$("#admin-products"))return;const user=await requireAdmin();if(!user)return;$("#admin-user").textContent=user.email||"Administrator";$("#logout-btn")?.addEventListener("click",async()=>{await sb.auth.signOut();location.href="admin-login.html";});$$(".tab-btn").forEach(b=>b.addEventListener("click",()=>{ $$(".tab-btn").forEach(x=>x.classList.toggle("active",x===b));$$(".admin-tab").forEach(x=>x.classList.toggle("hidden",x.id!==`tab-${b.dataset.tab}`));if(b.dataset.tab==="orders")loadOrders();if(b.dataset.tab==="categories")loadCategories();}));$("#new-product-btn").onclick=()=>{const f=$("#product-form");f.reset();f.elements.id.value="";f.classList.remove("hidden");};$("#cancel-product-btn").onclick=()=>$("#product-form").classList.add("hidden");$("#product-form").addEventListener("submit",saveProduct);$("#category-form").addEventListener("submit",saveCategory);$("#refresh-orders").onclick=loadOrders;await loadCategories();await loadAdminProducts();await loadStats();await loadOrders();}
-  async function loadStats(){const [p,o,d]=await Promise.all([sb.from("products").select("id",{count:"exact",head:true}),sb.from("orders").select("id",{count:"exact",head:true}),sb.from("orders").select("total").eq("order_status","delivered").eq("payment_status","collected")]);const pending=await sb.from("orders").select("id",{count:"exact",head:true}).in("order_status",["pending_confirmation","confirmed","processing"]);const revenue=(d.data||[]).reduce((n,x)=>n+Number(x.total||0),0);$("#admin-stats").innerHTML=`<div class="stat-card"><span>Products</span><strong>${p.count??"—"}</strong></div><div class="stat-card"><span>Total orders</span><strong>${o.count??"—"}</strong></div><div class="stat-card"><span>Pending orders</span><strong>${pending.count??"—"}</strong></div><div class="stat-card"><span>Collected delivered sales</span><strong>${money(revenue)}</strong></div>`;}
-  async function loadAdminProducts(){const body=$("#admin-products");const {data,error}=await sb.from("products").select("id,title,price,sale_price,stock,is_published,image_url,image_path,description,short_description,sku,category_id,is_featured").order("created_at",{ascending:false});if(error){body.innerHTML='<tr><td colspan="5">Could not load products. Check RLS policies.</td></tr>';return;}body.innerHTML=data.length?data.map(p=>`<tr><td><div class="table-product">${p.image_url||p.image_path?`<img src="${esc(imageOf(p))}" alt="">`:""}<span>${esc(p.title)}</span></div></td><td>${money(productPrice(p))}</td><td>${p.stock}</td><td><span class="status-pill">${p.is_published?"Published":"Draft"}</span></td><td><div class="action-row"><button class="text-button" data-edit="${p.id}">Edit</button><button class="text-button danger" data-delete="${p.id}">Delete</button></div></td></tr>`).join(""):'<tr><td colspan="5">No products yet. Add your first product.</td></tr>';body.onclick=async e=>{const edit=e.target.closest("[data-edit]"),del=e.target.closest("[data-delete]");if(edit){const p=data.find(x=>x.id===edit.dataset.edit),f=$("#product-form");Object.entries(p).forEach(([k,v])=>{if(f.elements[k]){if(f.elements[k].type==="checkbox")f.elements[k].checked=!!v;else f.elements[k].value=v??"";}});f.elements.image.value="";f.classList.remove("hidden");window.scrollTo({top:f.offsetTop-80,behavior:"smooth"});}if(del&&confirm("Delete this product? Historical order items remain saved.")){const {error}=await sb.from("products").delete().eq("id",del.dataset.delete);if(error)toast("Could not delete product. It may be referenced by an order.");else{toast("Product deleted.");loadAdminProducts();loadStats();}}};}
-  async function saveProduct(e){e.preventDefault();const form=e.currentTarget,btn=$('button[type="submit"]',form);btn.disabled=true;try{const fd=new FormData(form),id=fd.get("id")||null;let image_path=null,image_url=String(fd.get("image_url")||"").trim()||null;const file=fd.get("image");if(file&&file.size){if(file.size>5*1024*1024)throw new Error("Image must be 5 MB or smaller.");if(!["image/jpeg","image/png","image/webp"].includes(file.type))throw new Error("Use JPG, PNG, or WebP images.");const path=`${crypto.randomUUID()}-${slug(file.name)}`;const up=await sb.storage.from("product-images").upload(path,file,{upsert:false,contentType:file.type});if(up.error)throw up.error;image_path=path;image_url=null;}else if(id){const old=await sb.from("products").select("image_path,image_url").eq("id",id).single();image_path=old.data?.image_path||null;if(!image_url)image_url=old.data?.image_url||null;}
-      const title=String(fd.get("title")).trim(),price=Number(fd.get("price")),sale=fd.get("sale_price")===""?null:Number(fd.get("sale_price"));if(!title||!Number.isFinite(price)||price<0)throw new Error("Enter a valid title and price.");if(sale!==null&&(!Number.isFinite(sale)||sale<0))throw new Error("Enter a valid sale price.");
+
+  async function requireAdmin(){
+    if(!sb){location.href="admin-login.html";return null;}
+    const {data:{session}}=await sb.auth.getSession();
+    if(!session){location.href="admin-login.html";return null;}
+    const {data:profile,error}=await sb.from("profiles").select("role").eq("id",session.user.id).single();
+    if(error||profile?.role!=="admin"){await sb.auth.signOut();alert("This account is not authorized as an administrator.");location.href="admin-login.html";return null;}
+    return session.user;
+  }
+
+  async function loginAdmin(){
+    const form=$("#admin-login-form");if(!form)return;
+    form.addEventListener("submit",async e=>{
+      e.preventDefault();
+      const btn=$('button[type="submit"]',form),msg=$("#login-message");
+      btn.disabled=true;msg.textContent="Signing in…";
+      if(!sb){msg.textContent="Setup required: configure Supabase in config.js.";btn.disabled=false;return;}
+      const fd=new FormData(form);
+      const {error}=await sb.auth.signInWithPassword({email:fd.get("email"),password:fd.get("password")});
+      if(error){msg.textContent="Sign-in failed. Check your credentials and Supabase setup.";btn.disabled=false;return;}
+      const {data:{user}}=await sb.auth.getUser();
+      const {data:profile,error:pe}=await sb.from("profiles").select("role").eq("id",user.id).single();
+      if(pe||profile?.role!=="admin"){await sb.auth.signOut();msg.textContent="This account is not authorized for admin access.";btn.disabled=false;return;}
+      location.href="admin.html";
+    });
+  }
+
+  // COUPON MANAGEMENT
+  let editingCouponId = null;
+
+  function resetCouponForm(){
+    const form=$("#coupon-form");
+    if(!form)return;
+    form.reset();
+    if(form.elements.id)form.elements.id.value="";
+    if(form.elements.min_order_amount)form.elements.min_order_amount.value="0";
+    editingCouponId=null;
+    const button=form.querySelector('button[type="submit"]');
+    if(button)button.textContent="Save Coupon";
+  }
+
+  async function loadCoupons(){
+    const body=$("#coupon-admin-list");
+    if(!body)return;
+    body.innerHTML='<tr><td colspan="7">Loading coupons…</td></tr>';
+
+    const {data,error}=await sb.from("coupons").select("*").order("code");
+    if(error){
+      body.innerHTML=`<tr><td colspan="7">Could not load coupons: ${esc(error.message)}</td></tr>`;
+      return;
+    }
+
+    const coupons=data||[];
+    body.innerHTML=coupons.length?coupons.map(c=>`
+      <tr>
+        <td><strong>${esc(c.code)}</strong></td>
+        <td>${c.discount_type==="percent"?`${Number(c.discount_value)}%`:money(c.discount_value)}</td>
+        <td>${money(c.min_order_amount)}</td>
+        <td>${Number(c.used_count||0)} / ${c.max_uses??"Unlimited"}</td>
+        <td>${c.expires_at?esc(new Date(c.expires_at).toLocaleDateString()):"No expiry"}</td>
+        <td>${c.is_active?"Active":"Inactive"}</td>
+        <td>
+          <button type="button" class="text-button" data-coupon-edit="${esc(c.id)}">Edit</button>
+          <button type="button" class="text-button" data-coupon-toggle="${esc(c.id)}" data-active="${c.is_active}">
+            ${c.is_active?"Disable":"Enable"}
+          </button>
+        </td>
+      </tr>
+    `).join(""):'<tr><td colspan="7">No coupons created yet.</td></tr>';
+
+    body.onclick=async e=>{
+      const edit=e.target.closest("[data-coupon-edit]");
+      const toggle=e.target.closest("[data-coupon-toggle]");
+
+      if(edit){
+        const c=coupons.find(x=>String(x.id)===edit.dataset.couponEdit);
+        if(!c)return;
+        const form=$("#coupon-form");
+        if(!form)return;
+
+        editingCouponId=c.id;
+        form.elements.id.value=c.id;
+        form.elements.code.value=c.code||"";
+        form.elements.discount_type.value=c.discount_type||"percent";
+        form.elements.discount_value.value=c.discount_value??"";
+        form.elements.min_order_amount.value=c.min_order_amount??0;
+        form.elements.max_uses.value=c.max_uses??"";
+
+        if(c.expires_at){
+          const d=new Date(c.expires_at);
+          d.setMinutes(d.getMinutes()-d.getTimezoneOffset());
+          form.elements.expires_at.value=d.toISOString().slice(0,16);
+        }else{
+          form.elements.expires_at.value="";
+        }
+
+        form.querySelector('button[type="submit"]').textContent="Update Coupon";
+        form.scrollIntoView({behavior:"smooth",block:"start"});
+      }
+
+      if(toggle){
+        const active=toggle.dataset.active==="true";
+        toggle.disabled=true;
+        const {error}=await sb.from("coupons").update({is_active:!active}).eq("id",toggle.dataset.couponToggle);
+        if(error)toast(error.message);
+        else toast("Coupon status updated.");
+        await loadCoupons();
+      }
+    };
+  }
+
+  async function saveCoupon(e){
+    e.preventDefault();
+    const form=e.currentTarget;
+    const button=form.querySelector('button[type="submit"]');
+
+    const code=String(form.elements.code.value||"").trim().toUpperCase();
+    const type=form.elements.discount_type.value;
+    const value=Number(form.elements.discount_value.value);
+    const minimum=Number(form.elements.min_order_amount.value);
+    const maxRaw=String(form.elements.max_uses.value||"").trim();
+    const expiryRaw=form.elements.expires_at.value;
+
+    if(!/^[A-Z0-9_-]{2,30}$/.test(code)){
+      toast("Coupon code: use 2-30 letters, numbers, hyphens or underscores.");
+      return;
+    }
+    if(!["percent","fixed"].includes(type)){
+      toast("Select a valid discount type.");
+      return;
+    }
+    if(!Number.isFinite(value)||value<=0||(type==="percent"&&value>100)){
+      toast("Enter a valid discount. Percentage cannot exceed 100.");
+      return;
+    }
+    if(!Number.isFinite(minimum)||minimum<0){
+      toast("Enter a valid minimum order amount.");
+      return;
+    }
+
+    const maxUses=maxRaw===""?null:Number(maxRaw);
+    if(maxUses!==null&&(!Number.isInteger(maxUses)||maxUses<1)){
+      toast("Maximum uses must be a positive whole number.");
+      return;
+    }
+
+    let expiry=null;
+    if(expiryRaw){
+      const parsed=new Date(expiryRaw);
+      if(Number.isNaN(parsed.getTime())||parsed<=new Date()){
+        toast("Expiry date must be in the future.");
+        return;
+      }
+      expiry=parsed.toISOString();
+    }
+
+    const record={
+      code,
+      discount_type:type,
+      discount_value:value,
+      min_order_amount:minimum,
+      max_uses:maxUses,
+      expires_at:expiry
+    };
+
+    button.disabled=true;
+    try{
+      const result=editingCouponId
+        ? await sb.from("coupons").update(record).eq("id",editingCouponId)
+        : await sb.from("coupons").insert({...record,is_active:true});
+
+      if(result.error)throw result.error;
+
+      toast(editingCouponId?"Coupon updated.":"Coupon created.");
+      resetCouponForm();
+      await loadCoupons();
+    }catch(err){
+      toast(err.message||"Could not save coupon.");
+    }finally{
+      button.disabled=false;
+    }
+  }
+
+  async function adminInit(){
+    if(!$("#admin-products"))return;
+    const user=await requireAdmin();
+    if(!user)return;
+
+    $("#admin-user").textContent=user.email||"Administrator";
+
+    $("#logout-btn")?.addEventListener("click",async()=>{
+      await sb.auth.signOut();
+      location.href="admin-login.html";
+    });
+
+    $$(".tab-btn").forEach(b=>b.addEventListener("click",()=>{
+      $$(".tab-btn").forEach(x=>x.classList.toggle("active",x===b));
+      $$(".admin-tab").forEach(x=>x.classList.toggle("hidden",x.id!==`tab-${b.dataset.tab}`));
+      if(b.dataset.tab==="orders")loadOrders();
+      if(b.dataset.tab==="categories")loadCategories();
+      if(b.dataset.tab==="coupons")loadCoupons();
+    }));
+
+    $("#new-product-btn").onclick=()=>{
+      const f=$("#product-form");
+      f.reset();
+      f.elements.id.value="";
+      f.classList.remove("hidden");
+    };
+
+    $("#cancel-product-btn").onclick=()=>$("#product-form").classList.add("hidden");
+    $("#product-form").addEventListener("submit",saveProduct);
+    $("#category-form").addEventListener("submit",saveCategory);
+
+    $("#coupon-form")?.addEventListener("submit",saveCoupon);
+    $("#cancel-coupon")?.addEventListener("click",resetCouponForm);
+
+    $("#refresh-orders").onclick=loadOrders;
+
+    await loadCategories();
+    await loadAdminProducts();
+    await loadStats();
+    await loadOrders();
+  }
+
+  async function loadStats(){
+    const [p,o,d]=await Promise.all([
+      sb.from("products").select("id",{count:"exact",head:true}),
+      sb.from("orders").select("id",{count:"exact",head:true}),
+      sb.from("orders").select("total").eq("order_status","delivered").eq("payment_status","collected")
+    ]);
+    const pending=await sb.from("orders").select("id",{count:"exact",head:true}).in("order_status",["pending_confirmation","confirmed","processing"]);
+    const revenue=(d.data||[]).reduce((n,x)=>n+Number(x.total||0),0);
+    $("#admin-stats").innerHTML=`<div class="stat-card"><span>Products</span><strong>${p.count??"—"}</strong></div><div class="stat-card"><span>Total orders</span><strong>${o.count??"—"}</strong></div><div class="stat-card"><span>Pending orders</span><strong>${pending.count??"—"}</strong></div><div class="stat-card"><span>Collected delivered sales</span><strong>${money(revenue)}</strong></div>`;
+  }
+
+  async function loadAdminProducts(){
+    const body=$("#admin-products");
+    const {data,error}=await sb.from("products").select("id,title,price,sale_price,stock,is_published,image_url,image_path,description,short_description,sku,category_id,is_featured").order("created_at",{ascending:false});
+    if(error){body.innerHTML='<tr><td colspan="5">Could not load products. Check RLS policies.</td></tr>';return;}
+    body.innerHTML=data.length?data.map(p=>`<tr><td><div class="table-product">${p.image_url||p.image_path?`<img src="${esc(imageOf(p))}" alt="">`:""}<span>${esc(p.title)}</span></div></td><td>${money(productPrice(p))}</td><td>${p.stock}</td><td><span class="status-pill">${p.is_published?"Published":"Draft"}</span></td><td><div class="action-row"><button class="text-button" data-edit="${p.id}">Edit</button><button class="text-button danger" data-delete="${p.id}">Delete</button></div></td></tr>`).join(""):'<tr><td colspan="5">No products yet. Add your first product.</td></tr>';
+
+    body.onclick=async e=>{
+      const edit=e.target.closest("[data-edit]"),del=e.target.closest("[data-delete]");
+      if(edit){
+        const p=data.find(x=>x.id===edit.dataset.edit),f=$("#product-form");
+        Object.entries(p).forEach(([k,v])=>{
+          if(f.elements[k]){
+            if(f.elements[k].type==="checkbox")f.elements[k].checked=!!v;
+            else f.elements[k].value=v??"";
+          }
+        });
+        f.elements.image.value="";
+        f.classList.remove("hidden");
+        window.scrollTo({top:f.offsetTop-80,behavior:"smooth"});
+      }
+      if(del&&confirm("Delete this product? Historical order items remain saved.")){
+        const {error}=await sb.from("products").delete().eq("id",del.dataset.delete);
+        if(error)toast("Could not delete product. It may be referenced by an order.");
+        else{toast("Product deleted.");loadAdminProducts();loadStats();}
+      }
+    };
+  }
+
+  async function saveProduct(e){
+    e.preventDefault();
+    const form=e.currentTarget,btn=$('button[type="submit"]',form);
+    btn.disabled=true;
+    try{
+      const fd=new FormData(form),id=fd.get("id")||null;
+      let image_path=null,image_url=String(fd.get("image_url")||"").trim()||null;
+      const file=fd.get("image");
+      if(file&&file.size){
+        if(file.size>5*1024*1024)throw new Error("Image must be 5 MB or smaller.");
+        if(!["image/jpeg","image/png","image/webp"].includes(file.type))throw new Error("Use JPG, PNG, or WebP images.");
+        const path=`${crypto.randomUUID()}-${slug(file.name)}`;
+        const up=await sb.storage.from("product-images").upload(path,file,{upsert:false,contentType:file.type});
+        if(up.error)throw up.error;
+        image_path=path;image_url=null;
+      }else if(id){
+        const old=await sb.from("products").select("image_path,image_url").eq("id",id).single();
+        image_path=old.data?.image_path||null;
+        if(!image_url)image_url=old.data?.image_url||null;
+      }
+
+      const title=String(fd.get("title")).trim(),price=Number(fd.get("price")),sale=fd.get("sale_price")===""?null:Number(fd.get("sale_price"));
+      if(!title||!Number.isFinite(price)||price<0)throw new Error("Enter a valid title and price.");
+      if(sale!==null&&(!Number.isFinite(sale)||sale<0))throw new Error("Enter a valid sale price.");
+
       const payload={title,slug:slug(title),price,sale_price:sale,category_id:fd.get("category_id")||null,stock:Math.max(0,Number(fd.get("stock")||0)),sku:String(fd.get("sku")||"").trim()||null,short_description:String(fd.get("short_description")||"").trim()||null,description:String(fd.get("description")||"").trim()||null,image_path,image_url,is_featured:fd.get("is_featured")==="on",is_published:fd.get("is_published")==="on",updated_at:new Date().toISOString()};
-      const res=id?await sb.from("products").update(payload).eq("id",id):await sb.from("products").insert(payload);if(res.error)throw res.error;form.classList.add("hidden");toast("Product saved.");await loadAdminProducts();await loadStats();
-    }catch(err){toast(err.message||"Could not save product.");}finally{btn.disabled=false;}}
-  async function loadCategories(){const {data,error}=await sb.from("categories").select("id,name").order("name");if(error){const list=$("#category-admin-list");if(list)list.textContent="Could not load categories.";return;}const sel=$("#product-category");if(sel)sel.innerHTML='<option value="">Uncategorized</option>'+(data||[]).map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join("");const list=$("#category-admin-list");if(list)list.innerHTML=data.length?data.map(c=>`<div class="category-admin-row"><span>${esc(c.name)}</span><button class="text-button danger" data-cat-delete="${c.id}">Delete</button></div>`).join(""):"No categories yet.";if(list)list.onclick=async e=>{const b=e.target.closest("[data-cat-delete]");if(b&&confirm("Delete this category? Products will need a different category.")){const {error}=await sb.from("categories").delete().eq("id",b.dataset.catDelete);if(error)toast("Could not delete category. It may still be assigned to products.");else{toast("Category deleted.");loadCategories();}}};}
-  async function saveCategory(e){e.preventDefault();const name=String(new FormData(e.currentTarget).get("name")).trim();if(!name)return;const {error}=await sb.from("categories").insert({name,slug:slug(name)});if(error)toast("Could not add category. It may already exist.");else{e.currentTarget.reset();toast("Category added.");loadCategories();}}
-  const statusLabels={pending_confirmation:"Pending confirmation",confirmed:"Confirmed",processing:"Processing",shipped:"Shipped",out_for_delivery:"Out for delivery",delivered:"Delivered",cancelled:"Cancelled",returned:"Returned"};
-  async function loadOrders(){const body=$("#admin-orders");if(!body)return;const {data,error}=await sb.from("orders").select("*").order("created_at",{ascending:false}).limit(200);if(error){body.innerHTML='<tr><td colspan="7">Could not load orders. Check database policies.</td></tr>';return;}body.innerHTML=data.length?data.map(o=>`<tr><td><strong>${esc(o.order_number)}</strong><br><small>${new Date(o.created_at).toLocaleString()}</small></td><td>${esc(o.customer_name)}<br><small>${esc(o.customer_phone)}</small></td><td>${money(o.total)}</td><td>${esc(o.payment_status)}</td><td><span class="status-pill">${esc(statusLabels[o.order_status]||o.order_status)}</span></td><td><select class="status-select" data-status-id="${o.id}" aria-label="Update order status">${Object.entries(statusLabels).map(([v,l])=>`<option value="${v}" ${o.order_status===v?"selected":""}>${l}</option>`).join("")}</select></td><td><button class="text-button" data-order-detail="${o.id}">View</button></td></tr>`).join(""):'<tr><td colspan="7">No orders received yet.</td></tr>';body.onchange=async e=>{const s=e.target.closest("[data-status-id]");if(!s)return;const old=data.find(o=>o.id===s.dataset.statusId);const note=prompt("Optional note for status history:")||null;const {error}=await sb.from("orders").update({order_status:s.value}).eq("id",s.dataset.statusId);if(error){toast("Could not update order.");return;}const {error:he}=await sb.from("order_status_history").insert({order_id:s.dataset.statusId,previous_status:old?.order_status||null,new_status:s.value,note});if(he)toast("Status updated, but history insert failed. Check SQL setup.");else toast("Order status updated.");loadOrders();loadStats();};body.onclick=async e=>{const b=e.target.closest("[data-order-detail]");if(!b)return;const o=data.find(x=>x.id===b.dataset.orderDetail);const {data:items,error:ie}=await sb.from("order_items").select("*").eq("order_id",o.id);const detail=$("#order-detail");detail.classList.remove("hidden");detail.innerHTML=`<div class="admin-section-heading"><h2>Order ${esc(o.order_number)}</h2><button class="btn btn-outline btn-small" id="close-order-detail">Close</button></div><div class="detail-grid"><div><h3>Customer</h3><p>${esc(o.customer_name)}<br>${esc(o.customer_phone)}<br>${esc(o.customer_email||"")}</p><p>${esc(o.delivery_address)}<br>${esc(o.city)}, ${esc(o.province)}</p></div><div><h3>Payment and totals</h3><p>Method: ${esc(o.payment_method)}<br>Payment status: ${esc(o.payment_status)}<br>Subtotal: ${money(o.subtotal)}<br>Shipping: ${money(o.shipping_fee)}<br><strong>Total: ${money(o.total)}</strong></p></div></div><h3>Items</h3>${ie?"Could not load items.":(items||[]).map(i=>`<div class="order-item-row"><span>${esc(i.product_title)} × ${i.quantity}</span><strong>${money(i.line_total)}</strong></div>`).join("")}<p class="small muted">Delivery instructions: ${esc(o.delivery_instructions||"None")}</p><button id="mark-collected" class="btn btn-dark btn-small" data-id="${o.id}">Mark COD collected</button>`;$("#close-order-detail").onclick=()=>detail.classList.add("hidden");$("#mark-collected").onclick=async()=>{if(!confirm("Confirm that COD payment has been collected?"))return;const {error}=await sb.from("orders").update({payment_status:"collected"}).eq("id",o.id);if(error)toast("Could not update payment status.");else{toast("Payment collection recorded.");loadOrders();loadStats();}};};}
-  document.addEventListener("DOMContentLoaded",()=>{updateCartCount();const path=location.pathname.split("/").pop()||"index.html";if(path==="index.html")renderHome();if(path==="cart.html")renderCart();if(path==="checkout.html")renderCheckout();if(path==="admin-login.html")loginAdmin();if(path==="admin.html")adminInit();const year=$("#year");if(year)year.textContent=new Date().getFullYear();document.body.addEventListener("click",e=>{const b=e.target.closest(".add-cart");if(b)addProductToCart(b.dataset.id);});});
+      const res=id?await sb.from("products").update(payload).eq("id",id):await sb.from("products").insert(payload);
+      if(res.error)throw res.error;
+      form.classList.add("hidden");
+      toast("Product saved.");
+      await loadAdminProducts();await loadStats();
+    }catch(err){
+      toast(err.message||"Could not save product.");
+    }finally{
+      btn.disabled=false;
+    }
+  }
+
+  async function loadCategories(){
+    const {data,error}=await sb.from("categories").select("id,name").order("name");
+    if(error){
+      const list=$("#category-admin-list");
+      if(list)list.textContent="Could not load categories.";
+      return;
+    }
+    const sel=$("#product-category");
+    if(sel)sel.innerHTML='<option value="">Uncategorized</option>'+(data||[]).map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join("");
+    const list=$("#category-admin-list");
+    if(list)list.innerHTML=data.length?data.map(c=>`<div class="category-admin-row"><span>${esc(c.name)}</span><button class="text-button danger" data-cat-delete="${c.id}">Delete</button></div>`).join(""):"No categories yet.";
+    if(list)list.onclick=async e=>{
+      const b=e.target.closest("[data-cat-delete]");
+      if(b&&confirm("Delete this category? Products will need a different category.")){
+        const {error}=await sb.from("categories").delete().eq("id",b.dataset.catDelete);
+        if(error)toast("Could not delete category. It may still be assigned to products.");
+        else{toast("Category deleted.");loadCategories();}
+      }
+    };
+  }
+
+  async function saveCategory(e){
+    e.preventDefault();
+    const name=String(new FormData(e.currentTarget).get("name")).trim();
+    if(!name)return;
+    const {error}=await sb.from("categories").insert({name,slug:slug(name)});
+    if(error)toast("Could not add category. It may already exist.");
+    else{e.currentTarget.reset();toast("Category added.");loadCategories();}
+  }
+
+  const statusLabels={
+    pending_confirmation:"Pending confirmation",
+    confirmed:"Confirmed",
+    processing:"Processing",
+    shipped:"Shipped",
+    out_for_delivery:"Out for delivery",
+    delivered:"Delivered",
+    cancelled:"Cancelled",
+    returned:"Returned"
+  };
+
+  async function loadOrders(){
+    const body=$("#admin-orders");if(!body)return;
+    const {data,error}=await sb.from("orders").select("*").order("created_at",{ascending:false}).limit(200);
+    if(error){body.innerHTML='<tr><td colspan="7">Could not load orders. Check database policies.</td></tr>';return;}
+    body.innerHTML=data.length?data.map(o=>`<tr><td><strong>${esc(o.order_number)}</strong><br><small>${new Date(o.created_at).toLocaleString()}</small></td><td>${esc(o.customer_name)}<br><small>${esc(o.customer_phone)}</small></td><td>${money(o.total)}</td><td>${esc(o.payment_status)}</td><td><span class="status-pill">${esc(statusLabels[o.order_status]||o.order_status)}</span></td><td><select class="status-select" data-status-id="${o.id}" aria-label="Update order status">${Object.entries(statusLabels).map(([v,l])=>`<option value="${v}" ${o.order_status===v?"selected":""}>${l}</option>`).join("")}</select></td><td><button class="text-button" data-order-detail="${o.id}">View</button></td></tr>`).join(""):'<tr><td colspan="7">No orders received yet.</td></tr>';
+
+    body.onchange=async e=>{
+      const s=e.target.closest("[data-status-id]");if(!s)return;
+      const old=data.find(o=>o.id===s.dataset.statusId);
+      const note=prompt("Optional note for status history:")||null;
+      const {error}=await sb.from("orders").update({order_status:s.value}).eq("id",s.dataset.statusId);
+      if(error){toast("Could not update order.");return;}
+      const {error:he}=await sb.from("order_status_history").insert({order_id:s.dataset.statusId,previous_status:old?.order_status||null,new_status:s.value,note});
+      if(he)toast("Status updated, but history insert failed. Check SQL setup.");
+      else toast("Order status updated.");
+      loadOrders();loadStats();
+    };
+
+    body.onclick=async e=>{
+      const b=e.target.closest("[data-order-detail]");if(!b)return;
+      const o=data.find(x=>x.id===b.dataset.orderDetail);
+      const {data:items,error:ie}=await sb.from("order_items").select("*").eq("order_id",o.id);
+      const detail=$("#order-detail");
+      detail.classList.remove("hidden");
+      detail.innerHTML=`<div class="admin-section-heading"><h2>Order ${esc(o.order_number)}</h2><button class="btn btn-outline btn-small" id="close-order-detail">Close</button></div><div class="detail-grid"><div><h3>Customer</h3><p>${esc(o.customer_name)}<br>${esc(o.customer_phone)}<br>${esc(o.customer_email||"")}</p><p>${esc(o.delivery_address)}<br>${esc(o.city)}, ${esc(o.province)}</p></div><div><h3>Payment and totals</h3><p>Method: ${esc(o.payment_method)}<br>Payment status: ${esc(o.payment_status)}<br>Subtotal: ${money(o.subtotal)}<br>Shipping: ${money(o.shipping_fee)}<br><strong>Total: ${money(o.total)}</strong></p></div></div><h3>Items</h3>${ie?"Could not load items.":(items||[]).map(i=>`<div class="order-item-row"><span>${esc(i.product_title)} × ${i.quantity}</span><strong>${money(i.line_total)}</strong></div>`).join("")}<p class="small muted">Delivery instructions: ${esc(o.delivery_instructions||"None")}</p><button id="mark-collected" class="btn btn-dark btn-small" data-id="${o.id}">Mark COD collected</button>`;
+      $("#close-order-detail").onclick=()=>detail.classList.add("hidden");
+      $("#mark-collected").onclick=async()=>{
+        if(!confirm("Confirm that COD payment has been collected?"))return;
+        const {error}=await sb.from("orders").update({payment_status:"collected"}).eq("id",o.id);
+        if(error)toast("Could not update payment status.");
+        else{toast("Payment collection recorded.");loadOrders();loadStats();}
+      };
+    };
+  }
+
+  document.addEventListener("DOMContentLoaded",()=>{
+    updateCartCount();
+    const path=location.pathname.split("/").pop()||"index.html";
+    if(path==="index.html")renderHome();
+    if(path==="cart.html")renderCart();
+    if(path==="checkout.html")renderCheckout();
+    if(path==="admin-login.html")loginAdmin();
+    if(path==="admin.html")adminInit();
+    const year=$("#year");
+    if(year)year.textContent=new Date().getFullYear();
+    document.body.addEventListener("click",e=>{
+      const b=e.target.closest(".add-cart");
+      if(b)addProductToCart(b.dataset.id);
+    });
+  });
 })();

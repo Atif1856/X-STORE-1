@@ -125,7 +125,56 @@
 </table>
 </div>
 </section>
+<section id="tab-coupons" class="admin-tab hidden">
+  <h2>Coupon Management</h2>
 
+  <form id="coupon-form" class="admin-form">
+    <input type="hidden" name="id">
+
+    <label>Coupon Code</label>
+    <input name="code" placeholder="e.g. SAVE10" required>
+
+    <label>Discount Type</label>
+    <select name="discount_type" required>
+      <option value="percent">Percentage (%)</option>
+      <option value="fixed">Fixed Amount (PKR)</option>
+    </select>
+
+    <label>Discount Value</label>
+    <input name="discount_value" type="number" min="1" step="0.01" required>
+
+    <label>Minimum Order Amount (PKR)</label>
+    <input name="min_order_amount" type="number" min="0" value="0" required>
+
+    <label>Maximum Uses (blank = unlimited)</label>
+    <input name="max_uses" type="number" min="1">
+
+    <label>Expiry Date (optional)</label>
+    <input name="expires_at" type="datetime-local">
+
+    <button type="submit">Save Coupon</button>
+    <button type="button" id="cancel-coupon">Cancel</button>
+  </form>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Code</th>
+          <th>Discount</th>
+          <th>Minimum</th>
+          <th>Uses</th>
+          <th>Expiry</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="coupon-admin-list">
+        <tr><td colspan="7">No coupons loaded.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
 </main>
 
 <div id="toast" class="toast" role="status"></div>

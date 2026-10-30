@@ -46,7 +46,98 @@
   const updateCartCount = () => {
     const el=$("#cart-count");
     if(el)el.textContent=getCart().reduce((n,x)=>n+Number(x.qty||0),0);
+
+    updateFloatingCheckout();
   };
+
+  // FLOATING CHECKOUT BAR
+  function updateFloatingCheckout(){
+    if(!$("#product-grid"))return;
+
+    let bar=$("#floating-checkout");
+
+    if(!bar){
+      bar=document.createElement("div");
+      bar.id="floating-checkout";
+
+      bar.innerHTML=`
+        <div class="floating-cart-info">
+          <strong id="floating-cart-count">0 Items</strong>
+          <span id="floating-cart-total">PKR 0</span>
+        </div>
+        <a href="checkout.html" class="floating-checkout-btn">
+          Checkout →
+        </a>
+      `;
+
+      document.body.appendChild(bar);
+
+      const style=document.createElement("style");
+      style.textContent=`
+        #floating-checkout{
+          position:fixed;
+          z-index:9999;
+          left:50%;
+          bottom:22px;
+          transform:translateX(-50%);
+          width:min(440px,calc(100% - 28px));
+          display:none;
+          align-items:center;
+          justify-content:space-between;
+          gap:15px;
+          padding:13px 16px;
+          background:#f1f0e8;
+          border:1px solid rgba(217,51,51,.35);
+          border-radius:16px;
+          box-shadow:0 8px 35px rgba(0,0,0,.2);
+          color:#171717;
+        }
+        .floating-cart-info{
+          display:flex;
+          flex-direction:column;
+          gap:4px;
+          font-size:14px;
+        }
+        .floating-cart-info span{
+          font-size:12px;
+          opacity:.7;
+        }
+        .floating-checkout-btn{
+          background:#d93333;
+          color:white;
+          text-decoration:none;
+          padding:12px 19px;
+          border-radius:10px;
+          font-weight:700;
+          white-space:nowrap;
+        }
+        .floating-checkout-btn:hover{
+          background:#b92323;
+        }
+        @media(max-width:480px){
+          #floating-checkout{
+            bottom:12px;
+          }
+        }
+      `;
+
+      document.head.appendChild(style);
+    }
+
+    const cart=getCart();
+    const count=cart.reduce((n,x)=>n+Number(x.qty||0),0);
+    const total=cart.reduce(
+      (n,x)=>n+Number(x.price||0)*Number(x.qty||0),0
+    );
+
+    bar.style.display=count>0?"flex":"none";
+
+    $("#floating-cart-count").textContent=
+      `${count} ${count===1?"Item":"Items"}`;
+
+    $("#floating-cart-total").textContent=
+      `Items Total: ${money(total)}`;
+  }
 
   const productPrice = p => Number(
     p.sale_price && Number(p.sale_price)>0 && Number(p.sale_price)<Number(p.price)
@@ -152,6 +243,7 @@
 
     search?.addEventListener("input",draw);
     draw();
+    updateFloatingCheckout();
   }
 
   async function addProductToCart(id){

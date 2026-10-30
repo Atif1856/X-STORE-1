@@ -404,7 +404,118 @@
     };
   }
 
-  async function saveProduct(e){
+  
+  // PRODUCT MEDIA MANAGER
+  let currentProductMedia = [];
+
+  function ensureMediaManager(){
+    let box = $("#product-media-manager");
+    if(box) return box;
+
+    const videoInput = $('input[name="media_video"]');
+    if(!videoInput) return null;
+
+    const label = videoInput.closest("label");
+    if(!label) return null;
+
+    box = document.createElement("div");
+    box.id = "product-media-manager";
+    box.className = "full";
+    box.style.cssText = "margin-top:16px;padding:16px;border:1px solid #ddd;border-radius:12px;";
+    box.innerHTML = "<h3>Existing Product Media</h3><p class='small muted'>Save the product first to manage its media.</p>";
+
+    label.insertAdjacentElement("afterend", box);
+    return box;
+  }
+
+  async function loadProductMedia(productId){
+    const box = ensureMediaManager();
+    if(!box) return;
+
+    if(!productId){
+      currentProductMedia = [];
+      box.innerHTML = "<h3>Existing Product Media</h3><p class='small muted'>Save the product first to manage its media.</p>";
+      return;
+    }
+
+    box.innerHTML = "<h3>Existing Product Media</h3><p>Loading media...</p>";
+
+    const {data,error} = await sb
+      .from("product_media")
+      .select("id,product_id,media_type,storage_path,media_url,sort_order")
+      .eq("product_id",productId)
+      .order("sort_order");
+
+    if(error){
+      box.innerHTML = `<h3>Existing Product Media</h3><p class="notice">Could not load media: ${esc(error.message)}</p>`;
+      return;
+    }
+
+    currentProductMedia = data || [];
+
+    if(!currentProductMedia.length){
+      box.innerHTML = "<h3>Existing Product Media</h3><p class='small muted'>No additional media uploaded yet.</p>";
+      return;
+    }
+
+    box.innerHTML = `
+      <h3>Existing Product Media</h3>
+      <div class="media-admin-grid">
+        ${currentProductMedia.map(item=>{
+          const url = item.media_url ||
+            sb.storage.from("product-media").getPublicUrl(item.storage_path).data.publicUrl;
+
+          return `
+            <div class="media-admin-item" style="border:1px solid #ddd;padding:10px;border-radius:10px;">
+              ${
+                item.media_type === "image"
+                ? `<img src="${esc(url)}" alt="Product image" style="width:100%;height:140px;object-fit:cover;border-radius:8px;">`
+                : `<video src="${esc(url)}" controls style="width:100%;max-height:180px;"></video>`
+              }
+              <p class="small">${item.media_type === "image" ? "Image" : "Video"}</p>
+              <button type="button" class="text-button danger" data-media-delete="${esc(item.id)}">Delete</button>
+            </div>
+          `;
+        }).join("")}
+      </div>
+    `;
+
+    box.onclick = async e=>{
+      const button = e.target.closest("[data-media-delete]");
+      if(!button) return;
+
+      const item = currentProductMedia.find(x=>String(x.id)===button.dataset.mediaDelete);
+      if(!item) return;
+
+      if(!confirm("Delete this media file permanently?")) return;
+
+      button.disabled = true;
+
+      const {error:dbError} = await sb
+        .from("product_media")
+        .delete()
+        .eq("id",item.id);
+
+      if(dbError){
+        toast("Could not delete media: " + dbError.message);
+        button.disabled = false;
+        return;
+      }
+
+      const {error:storageError} = await sb
+        .storage.from("product-media")
+        .remove([item.storage_path]);
+
+      if(storageError){
+        toast("Media record deleted, but storage cleanup failed.");
+      }else{
+        toast("Media deleted.");
+      }
+
+      await loadProductMedia(productId);
+    };
+  }
+async function saveProduct(e){
     e.preventDefault();
     const form=e.currentTarget,btn=$('button[type="submit"]',form);
     btn.disabled=true;

@@ -1,0 +1,24 @@
+/* X STORE theme: red #D93333 + ivory #F1F0E8 */
+:root{--ivory:#F1F0E8;--gold:#D93333;--red:#D93333;--red-dark:#B52A2A;--border:#DCDACD;--muted:#6B665E}
+::selection{background:#D93333;color:#fff}
+.site-header{background:rgba(241,240,232,.94)}
+.eyebrow{color:#D93333}
+.btn-dark{background:#D93333;color:#fff}
+.btn-dark:hover{background:#B52A2A}
+.chip.selected,.chip:hover{background:#D93333;border-color:#D93333}
+.count{background:#D93333;color:#fff}
+.hero-art{background:#E6E4D8}
+.hero-orbit{border-color:rgba(217,51,51,.7);box-shadow:0 0 0 35px rgba(217,51,51,.07),0 0 0 70px rgba(217,51,51,.04)}
+.hero-stamp{background:#D93333;color:#F1F0E8}
+.hero-art>p{color:#6B665E}
+.section{background:#F7F6F0}
+.editorial{background:#E6E4D8}
+.product-image{background:#E9E7DC}
+.product-tag{background:#D93333;color:#fff}
+.product-info h3 a:hover{color:#D93333}
+.text-button{color:#B52A2A}
+.notice{background:#F7F6F0;color:#6B665E}
+.status-pill{background:rgba(217,51,51,.1);color:#B52A2A}
+.search-input:focus,input:focus,textarea:focus,select:focus{border-color:#D93333;outline:2px solid rgba(217,51,51,.18)}
+.site-header nav a:hover,footer a:hover{color:#D93333}
+.tab-btn.active{border-color:#D93333}

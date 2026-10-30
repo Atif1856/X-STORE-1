@@ -26,12 +26,29 @@
 
       <p id="order-number" class="order-number"></p>
 
-      <p class="muted small">
-        Save your order number for reference.
-        You can use it to track your order.
-      </p>
+      <button
+        type="button"
+        class="btn btn-dark"
+        id="copy-order"
+        style="margin-top:10px"
+      >
+        Copy Order Number
+      </button>
 
-      <a class="btn btn-dark" href="track-order.html">
+      <p id="copy-message" class="small muted" aria-live="polite"></p>
+
+      <div style="margin:20px 0;padding:15px;border:1px solid #ddd;border-radius:10px;text-align:left">
+        <strong>Important: Save Your Order Number</strong>
+        <p class="small muted">
+          Please take a screenshot or copy your order number and save it safely.
+          You will need it to track your order.
+        </p>
+        <p class="small muted">
+          Order tracking requires your order number and registered mobile number.
+        </p>
+      </div>
+
+      <a class="btn" href="track-order.html">
         Track Your Order →
       </a>
 
@@ -42,12 +59,33 @@
   </main>
 
   <script>
-    const orderNumber =
-      sessionStorage.getItem("xstore_last_order");
+    const orderNumber = sessionStorage.getItem("xstore_last_order");
+    const orderElement = document.getElementById("order-number");
+    const copyButton = document.getElementById("copy-order");
+    const copyMessage = document.getElementById("copy-message");
 
-    document.getElementById("order-number").textContent =
-      "Order number: " +
-      (orderNumber || "Please contact the store if you did not receive a number.");
+    orderElement.textContent = orderNumber
+      ? "Order number: " + orderNumber
+      : "Please contact the store if you did not receive an order number.";
+
+    copyButton.addEventListener("click", async () => {
+      if (!orderNumber) {
+        copyMessage.textContent = "Order number is not available.";
+        return;
+      }
+
+      try {
+        await navigator.clipboard.writeText(orderNumber);
+        copyMessage.textContent = "Order number copied successfully!";
+      } catch (error) {
+        copyMessage.textContent =
+          "Copy failed. Please select and copy your order number manually.";
+      }
+    });
+
+    if (!orderNumber) {
+      copyButton.disabled = true;
+    }
   </script>
 </body>
 </html>

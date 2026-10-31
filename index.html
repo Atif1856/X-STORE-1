@@ -7,7 +7,6 @@
   <meta name="theme-color" content="#f4f0e8">
 
   <title>X STORE | Classic Finds, Everyday Value</title>
-
   <meta name="description" content="Shop the latest products at X STORE. Cash on Delivery available in Pakistan.">
 
   <link rel="icon" href="favicon.ico" sizes="any">
@@ -20,8 +19,6 @@
   <link rel="stylesheet" href="theme.css?v=1">
 
   <style>
-    /* Announcement Bar */
-
     .announcement-bar {
       display: none;
       width: 100%;
@@ -100,29 +97,18 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script defer src="config.js"></script>
   <script defer src="app.js"></script>
-  <script defer src="banner-home.js"></script>
+  <script defer src="banner-home.js?v=2"></script>
 </head>
 
 <body>
 
-<!-- Announcement Bar -->
 <div id="announcement-bar" class="announcement-bar">
-  <a
-    id="announcement-content"
-    class="announcement-content"
-    href="#"
-  ></a>
-
-  <button
-    id="announcement-close"
-    class="announcement-close"
-    type="button"
-    aria-label="Close announcement"
-  >×</button>
+  <a id="announcement-content" class="announcement-content"></a>
+  <button id="announcement-close" class="announcement-close"
+    type="button" aria-label="Close announcement">×</button>
 </div>
 
 <header class="site-header">
-
   <a class="brand" href="index.html">
     <img class="brand-logo" src="xstore-logo.png"
       alt="X STORE logo" width="287" height="240">
@@ -139,11 +125,9 @@
   <a class="cart-link" href="cart.html">
     Cart <span id="cart-count" class="count">0</span>
   </a>
-
 </header>
 
 <main>
-
   <section class="hero">
     <div class="hero-copy">
       <p class="eyebrow">A BETTER WAY TO SHOP</p>
@@ -160,7 +144,6 @@
   </section>
 
   <section id="shop" class="section">
-
     <div class="section-heading">
       <div>
         <p class="eyebrow">THE COLLECTION</p>
@@ -177,7 +160,6 @@
     <div id="product-grid" class="product-grid">
       <div class="notice">Loading products…</div>
     </div>
-
   </section>
 
   <section id="about" class="editorial">
@@ -193,11 +175,9 @@
     </div>
     <p>For order questions, contact the store using the details provided by the store administrator.</p>
   </section>
-
 </main>
 
 <footer>
-
   <a class="brand" href="index.html">
     <img class="brand-logo" src="xstore-logo.png"
       alt="X STORE logo" width="287" height="240">
@@ -211,175 +191,9 @@
     <a href="track-order.html">Track Order</a>
     <a href="admin-login.html">Admin</a>
   </div>
-
 </footer>
 
 <div id="toast" class="toast" role="status"></div>
-
-<script>
-(function () {
-  const bar = document.getElementById("announcement-bar");
-  const content = document.getElementById("announcement-content");
-  const closeButton = document.getElementById("announcement-close");
-
-  if (!bar || !content || !closeButton) return;
-
-  let offers = [];
-  let currentIndex = 0;
-  let slideTimer = null;
-
-  function hideBar() {
-    bar.classList.remove("is-visible");
-
-    if (slideTimer) {
-      clearInterval(slideTimer);
-      slideTimer = null;
-    }
-  }
-
-  function validLink(value) {
-    const link = String(value || "").trim();
-
-    if (!link) return "";
-
-    if (
-      link.startsWith("/") ||
-      link.startsWith("./") ||
-      link.startsWith("../") ||
-      link.startsWith("#")
-    ) {
-      return link;
-    }
-
-    try {
-      const url = new URL(link, window.location.origin);
-
-      if (url.protocol === "http:" || url.protocol === "https:") {
-        return url.href;
-      }
-    } catch (error) {
-      return "";
-    }
-
-    return "";
-  }
-
-  function displayOffer(index) {
-    if (!offers.length) return;
-
-    currentIndex = index % offers.length;
-
-    const offer = offers[currentIndex];
-
-    content.classList.add("is-changing");
-
-    setTimeout(() => {
-      content.textContent = offer.text;
-
-      const link = validLink(offer.url);
-
-      if (link) {
-        content.href = link;
-        content.style.pointerEvents = "auto";
-        content.setAttribute("aria-label", offer.text);
-      } else {
-        content.removeAttribute("href");
-        content.style.pointerEvents = "none";
-      }
-
-      content.classList.remove("is-changing");
-    }, 300);
-  }
-
-  function startSlider(interval) {
-    if (slideTimer) {
-      clearInterval(slideTimer);
-    }
-
-    if (offers.length <= 1) return;
-
-    slideTimer = setInterval(() => {
-      displayOffer(currentIndex + 1);
-    }, interval * 1000);
-  }
-
-  async function loadAnnouncements() {
-    const config = window.XSTORE_CONFIG;
-
-    if (
-      !config ||
-      !config.SUPABASE_URL ||
-      !config.SUPABASE_ANON_KEY ||
-      !window.supabase
-    ) {
-      return;
-    }
-
-    try {
-      const sb = window.supabase.createClient(
-        config.SUPABASE_URL,
-        config.SUPABASE_ANON_KEY
-      );
-
-      const { data, error } = await sb
-        .from("site_settings")
-        .select("setting_value")
-        .eq("setting_key", "announcement_bar")
-        .maybeSingle();
-
-      if (error) throw error;
-
-      const settings = data?.setting_value;
-
-      if (!settings || settings.enabled !== true) {
-        hideBar();
-        return;
-      }
-
-      offers = Array.isArray(settings.offers)
-        ? settings.offers.filter(offer =>
-            offer &&
-            typeof offer.text === "string" &&
-            offer.text.trim()
-          )
-        : [];
-
-      if (!offers.length) {
-        hideBar();
-        return;
-      }
-
-      bar.style.backgroundColor =
-        /^#[0-9a-f]{6}$/i.test(settings.background || "")
-          ? settings.background
-          : "#171717";
-
-      bar.style.color =
-        /^#[0-9a-f]{6}$/i.test(settings.color || "")
-          ? settings.color
-          : "#f1f0e8";
-
-      const interval = Math.min(
-        15,
-        Math.max(2, Number(settings.interval) || 4)
-      );
-
-      bar.classList.add("is-visible");
-
-      displayOffer(0);
-      startSlider(interval);
-
-    } catch (error) {
-      console.error("Announcement bar could not load:", error);
-      hideBar();
-    }
-  }
-
-  closeButton.addEventListener("click", hideBar);
-
-  loadAnnouncements();
-})();
-</script>
 
 </body>
 </html>

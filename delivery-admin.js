@@ -12,8 +12,9 @@
   const form = $("#delivery-charge-form");
   const list = $("#delivery-charge-list");
   const message = $("#delivery-charge-message");
+  const deliveryTab = $("#tab-delivery");
 
-  if (!sb || !form || !list) return;
+  if (!sb || !form || !list || !deliveryTab) return;
 
   let editingId = null;
 
@@ -32,6 +33,147 @@
     message.style.color = error ? "#b42318" : "#16803c";
   }
 
+  // Nationwide delivery settings UI
+  const settingsPanel = document.createElement("div");
+  settingsPanel.className = "panel";
+  settingsPanel.style.marginBottom = "24px";
+
+  settingsPanel.innerHTML = `
+    <h2>Nationwide Delivery Settings</h2>
+    <p class="muted">
+      Ye settings Pakistan ke tamam cities par apply hongi.
+    </p>
+
+    <div class="form-grid">
+      <label class="full">
+        Delivery Mode
+        <select id="nationwide-delivery-mode">
+          <option value="flat">Flat Fee</option>
+          <option value="free">Free Delivery</option>
+        </select>
+      </label>
+
+      <label class="full" id="nationwide-fee-wrap">
+        Flat Delivery Fee (PKR)
+        <input
+          id="nationwide-delivery-fee"
+          type="number"
+          min="0"
+          step="0.01"
+          value="175"
+        >
+      </label>
+
+      <div class="full">
+        <button
+          type="button"
+          id="save-nationwide-delivery"
+          class="btn btn-dark"
+        >
+          Save Delivery Settings
+        </button>
+      </div>
+    </div>
+
+    <div id="nationwide-delivery-message"
+      class="notice hidden"
+      role="status"
+      style="margin-top:16px">
+    </div>
+  `;
+
+  deliveryTab.insertBefore(settingsPanel, deliveryTab.firstChild);
+
+  const modeInput = $("#nationwide-delivery-mode");
+  const feeInput = $("#nationwide-delivery-fee");
+  const feeWrap = $("#nationwide-fee-wrap");
+  const saveSettingsButton = $("#save-nationwide-delivery");
+  const settingsMessage = $("#nationwide-delivery-message");
+
+  function settingsNotify(text, error = false) {
+    settingsMessage.textContent = text;
+    settingsMessage.classList.remove("hidden");
+    settingsMessage.style.color = error ? "#b42318" : "#16803c";
+  }
+
+  function updateFeeVisibility() {
+    feeWrap.classList.toggle("hidden", modeInput.value === "free");
+  }
+
+  modeInput.addEventListener("change", updateFeeVisibility);
+
+  async function loadNationwideSettings() {
+    const { data, error } = await sb
+      .from("site_settings")
+      .select("setting_value")
+      .eq("setting_key", "delivery_settings")
+      .maybeSingle();
+
+    if (error) {
+      settingsNotify(error.message, true);
+      return;
+    }
+
+    const settings = data?.setting_value || {};
+
+    modeInput.value = settings.mode === "free" ? "free" : "flat";
+    feeInput.value = settings.fee ?? 175;
+
+    updateFeeVisibility();
+  }
+
+  saveSettingsButton.addEventListener("click", async () => {
+    const mode = modeInput.value;
+    const fee = Number(feeInput.value);
+
+    if (mode !== "flat" && mode !== "free") {
+      settingsNotify("Please select a valid delivery mode.", true);
+      return;
+    }
+
+    if (
+      mode === "flat" &&
+      (!Number.isFinite(fee) || fee < 0 || feeInput.value.trim() === "")
+    ) {
+      settingsNotify("Please enter a valid delivery fee.", true);
+      return;
+    }
+
+    saveSettingsButton.disabled = true;
+    settingsNotify("Saving delivery settings...");
+
+    const settings = {
+      mode,
+      fee: mode === "free" ? 0 : fee
+    };
+
+    const { error } = await sb
+      .from("site_settings")
+      .upsert({
+        setting_key: "delivery_settings",
+        setting_value: settings,
+        updated_at: new Date().toISOString()
+      }, {
+        onConflict: "setting_key"
+      });
+
+    saveSettingsButton.disabled = false;
+
+    if (error) {
+      settingsNotify(error.message, true);
+      return;
+    }
+
+    settingsNotify(
+      mode === "free"
+        ? "Free delivery enabled nationwide."
+        : `Nationwide flat delivery fee saved: ${money(fee)}.`
+    );
+  });
+
+  // Existing city-wise delivery management
+  let charges = [];
+
   async function loadCharges() {
     list.innerHTML = '<tr><td colspan="5">Loading...</td></tr>';
 
@@ -46,13 +188,15 @@
       return;
     }
 
-    if (!data.length) {
+    charges = data || [];
+
+    if (!charges.length) {
       list.innerHTML =
-        '<tr><td colspan="5">No delivery charges added yet.</td></tr>';
+        '<tr><td colspan="5">No old city-wise charges added.</td></tr>';
       return;
     }
 
-    list.innerHTML = data.map(item => `
+    list.innerHTML = charges.map(item => `
       <tr>
         <td>${esc(item.city)}</td>
         <td>${esc(item.province)}</td>
@@ -72,7 +216,7 @@
 
     list.querySelectorAll("[data-edit]").forEach(button => {
       button.addEventListener("click", () => {
-        const item = data.find(x => x.id === button.dataset.edit);
+        const item = charges.find(x => x.id === button.dataset.edit);
         if (!item) return;
 
         editingId = item.id;
@@ -147,5 +291,6 @@
     await loadCharges();
   });
 
+  loadNationwideSettings();
   loadCharges();
 })();

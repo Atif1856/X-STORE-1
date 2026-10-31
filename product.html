@@ -1,4 +1,4 @@
-
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -80,6 +80,13 @@
       font-size: 15px;
     }
 
+    .product-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 20px;
+    }
+
     .product-page button {
       background: #171717;
       color: #f1f0e8;
@@ -101,6 +108,16 @@
       cursor: not-allowed;
     }
 
+    .product-page .buy-now-btn {
+      background: #b89b62;
+      color: #111;
+    }
+
+    .product-page .buy-now-btn:hover:not(:disabled) {
+      background: #171717;
+      color: #f1f0e8;
+    }
+
     #product-message {
       margin-top: 15px;
       min-height: 20px;
@@ -115,6 +132,14 @@
 
       .product-details h1 {
         font-size: 25px;
+      }
+
+      .product-actions {
+        flex-direction: column;
+      }
+
+      .product-actions button {
+        width: 100%;
       }
     }
   </style>
@@ -317,14 +342,24 @@
               )}
             </div>
 
-            <button
-              id="add-product-cart"
-              ${Number(p.stock) <= 0 ? "disabled" : ""}
-            >
-              ${Number(p.stock) <= 0 ? "Out of stock" : "Add to Cart"}
-            </button>
+            <div class="product-actions">
+              <button
+                id="add-product-cart"
+                ${Number(p.stock) <= 0 ? "disabled" : ""}
+              >
+                Add to Cart
+              </button>
 
-            <p id="product-message"></p>
+              <button
+                id="buy-now"
+                class="buy-now-btn"
+                ${Number(p.stock) <= 0 ? "disabled" : ""}
+              >
+                Buy Now →
+              </button>
+            </div>
+
+            <p id="product-message" aria-live="polite"></p>
 
             <p>
               <a href="index.html#shop">← Continue shopping</a>
@@ -336,78 +371,100 @@
           this.src = fallback;
         };
 
+        // Shared cart function for Add to Cart and Buy Now.
+        function addProductToCart() {
+          const message = document.getElementById("product-message");
+          const sizeSelect = document.getElementById("product-size");
+
+          message.textContent = "";
+
+          let selectedSize = null;
+
+          if (sizes.length > 0) {
+            selectedSize = sizeSelect?.value || "";
+
+            if (!selectedSize) {
+              message.textContent = "Please select a size first.";
+              return false;
+            }
+          }
+
+          const stock = Number(p.stock || 0);
+
+          if (stock < 1) {
+            message.textContent = "This product is out of stock.";
+            return false;
+          }
+
+          const cart = getCart();
+
+          const existing = cart.find(item =>
+            item.id === p.id &&
+            (item.selected_size || null) === selectedSize
+          );
+
+          // Product stock is shared across all sizes.
+          const totalProductQty = cart
+            .filter(item => item.id === p.id)
+            .reduce((total, item) => {
+              return total + Number(item.qty || 0);
+            }, 0);
+
+          if (totalProductQty + 1 > stock) {
+            message.textContent = "Stock limit reached.";
+            return false;
+          }
+
+          if (existing) {
+            existing.qty = Number(existing.qty || 0) + 1;
+          } else {
+            cart.push({
+              id: p.id,
+              title: p.title,
+              price: price,
+              image_url: p.image_url,
+              image_path: p.image_path,
+              selected_size: selectedSize,
+              qty: 1
+            });
+          }
+
+          localStorage.setItem(
+            "xstore_cart",
+            JSON.stringify(cart)
+          );
+
+          updateCartCount();
+
+          return true;
+        }
+
+        // Normal Add to Cart.
         document
           .getElementById("add-product-cart")
           .addEventListener("click", () => {
+            const added = addProductToCart();
 
-            const message = document.getElementById("product-message");
-            const sizeSelect = document.getElementById("product-size");
+            if (added) {
+              const selectedSize =
+                document.getElementById("product-size")?.value || "";
 
-            message.textContent = "";
-
-            let selectedSize = null;
-
-            if (sizes.length > 0) {
-              selectedSize = sizeSelect?.value || "";
-
-              if (!selectedSize) {
-                message.textContent = "Please select a size first.";
-                return;
-              }
+              document.getElementById("product-message").textContent =
+                selectedSize
+                  ? `Product added to cart. Size: ${selectedSize}`
+                  : "Product added to cart successfully.";
             }
+          });
 
-            const stock = Number(p.stock || 0);
+        // Buy Now: add product to existing cart, then open checkout.
+        document
+          .getElementById("buy-now")
+          .addEventListener("click", () => {
+            const added = addProductToCart();
 
-            if (stock < 1) {
-              message.textContent = "This product is out of stock.";
-              return;
-            }
+            if (!added) return;
 
-            const cart = getCart();
-
-            // Same product with different sizes = separate cart items.
-            const existing = cart.find(item =>
-              item.id === p.id &&
-              (item.selected_size || null) === selectedSize
-            );
-
-            // Stock is product-level, so count all sizes together.
-            const totalProductQty = cart
-              .filter(item => item.id === p.id)
-              .reduce((total, item) => {
-                return total + Number(item.qty || 0);
-              }, 0);
-
-            if (totalProductQty + 1 > stock) {
-              message.textContent = "Stock limit reached.";
-              return;
-            }
-
-            if (existing) {
-              existing.qty = Number(existing.qty || 0) + 1;
-            } else {
-              cart.push({
-                id: p.id,
-                title: p.title,
-                price: price,
-                image_url: p.image_url,
-                image_path: p.image_path,
-                selected_size: selectedSize,
-                qty: 1
-              });
-            }
-
-            localStorage.setItem(
-              "xstore_cart",
-              JSON.stringify(cart)
-            );
-
-            updateCartCount();
-
-            message.textContent =
-              selectedSize
-                ? `Product added to cart. Size: ${selectedSize}`
-                : "Product added to cart successfully.";
+            window.location.href = "checkout.html";
           });
       }
 
@@ -418,3 +475,4 @@
 
 </body>
 </html>
+```

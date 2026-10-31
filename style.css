@@ -290,3 +290,185 @@ body::after{
     animation:none;
   }
 }
+
+/* =========================================
+   X STORE — LUXURY 3D UI UPGRADE
+   Off-White + Black
+   Product images and product cards unchanged
+========================================= */
+
+:root {
+  --ivory: #F3F1EA;
+  --ink: #111111;
+  --gold: #A88B5D;
+  --border: #DED9CF;
+  --muted: #6B6861;
+  --shadow: 0 18px 45px rgba(17,17,17,.08);
+}
+
+/* Remove old lava sparks */
+body::before,
+body::after {
+  display: none !important;
+}
+
+/* Premium background depth */
+body {
+  background:
+    radial-gradient(ellipse at 15% 5%, rgba(255,255,255,.95), transparent 38%),
+    linear-gradient(145deg, #F7F5EF, #EEEAE1);
+}
+
+/* Luxury glass header */
+.site-header {
+  background: rgba(247,245,239,.86);
+  border-bottom: 1px solid rgba(17,17,17,.08);
+  box-shadow: 0 8px 30px rgba(17,17,17,.035);
+  backdrop-filter: blur(22px);
+}
+
+/* Premium navigation hover */
+.site-header nav a {
+  transition: color .25s ease;
+}
+
+.site-header nav a:hover {
+  color: var(--gold);
+}
+
+/* 3D depth for hero area */
+.hero {
+  position: relative;
+  isolation: isolate;
+}
+
+.hero-copy {
+  position: relative;
+  z-index: 1;
+}
+
+.hero-art {
+  border: 1px solid rgba(255,255,255,.7);
+  border-radius: 4px;
+  box-shadow:
+    0 30px 65px rgba(17,17,17,.12),
+    inset 0 1px 0 rgba(255,255,255,.8);
+}
+
+/* Premium buttons */
+.btn {
+  border-radius: 3px;
+  transition:
+    transform .25s ease,
+    box-shadow .25s ease,
+    background .25s ease;
+}
+
+.btn-dark {
+  box-shadow:
+    0 5px 0 #080808,
+    0 10px 22px rgba(17,17,17,.15);
+}
+
+.btn-dark:hover {
+  transform: translateY(-3px);
+  box-shadow:
+    0 7px 0 #080808,
+    0 16px 28px rgba(17,17,17,.18);
+}
+
+.btn-outline {
+  box-shadow: 0 5px 15px rgba(17,17,17,.035);
+}
+
+.btn-outline:hover {
+  background: #fff;
+  transform: translateY(-2px);
+}
+
+/* Layered premium sections */
+.section {
+  background:
+    linear-gradient(145deg, #FCFBF7, #F4F1E9);
+  border-top: 1px solid rgba(255,255,255,.8);
+  border-bottom: 1px solid rgba(17,17,17,.045);
+}
+
+/* Editorial luxury depth */
+.editorial {
+  background:
+    radial-gradient(circle at 50% 0%, #F7F2E8, transparent 65%),
+    linear-gradient(135deg, #E8E0D2, #F0EBE2);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.7),
+    inset 0 -1px 0 rgba(17,17,17,.04);
+}
+
+/* 3D-style content panels */
+.panel,
+.stat-card {
+  border: 1px solid rgba(255,255,255,.85);
+  box-shadow:
+    0 2px 5px rgba(17,17,17,.025),
+    0 15px 35px rgba(17,17,17,.065),
+    inset 0 1px 0 rgba(255,255,255,.9);
+  transition:
+    transform .25s ease,
+    box-shadow .25s ease;
+}
+
+.panel:hover,
+.stat-card:hover {
+  transform: translateY(-3px);
+  box-shadow:
+    0 5px 12px rgba(17,17,17,.04),
+    0 22px 42px rgba(17,17,17,.09);
+}
+
+/* Elegant form fields */
+.form-grid input,
+.form-grid textarea,
+.form-grid select,
+.inline-form input,
+.search-input {
+  border-radius: 5px;
+  box-shadow: inset 0 2px 5px rgba(17,17,17,.025);
+  transition: border-color .2s, box-shadow .2s;
+}
+
+.form-grid input:focus,
+.form-grid textarea:focus,
+.form-grid select:focus,
+.inline-form input:focus,
+.search-input:focus {
+  box-shadow: 0 0 0 4px rgba(168,139,93,.10);
+}
+
+/* Premium admin dashboard */
+.stat-card {
+  background: linear-gradient(145deg, #FFFFFF, #F7F5F0);
+}
+
+.admin-tabs {
+  border-bottom-color: #DCD6CA;
+}
+
+.tab-btn.active {
+  border-color: var(--gold);
+}
+
+/* Elegant footer */
+footer {
+  background: #EAE6DD;
+  border-top: 1px solid rgba(17,17,17,.08);
+}
+
+/* Respect reduced-motion preference */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+  }
+}

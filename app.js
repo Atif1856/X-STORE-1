@@ -319,10 +319,8 @@
       });
     }
 
-    // Keep total quantity across all sizes within product stock.
     const totals={};
     valid.forEach(x=>totals[x.id]=(totals[x.id]||0)+Number(x.qty||0));
-
     valid=valid.filter(x=>Number(x.stock)>=totals[x.id]);
 
     setCart(valid);
@@ -1023,6 +1021,7 @@
     }
   }
 
+  // ADMIN DASHBOARD
   async function adminInit(){
     if(!$("#admin-products"))return;
 
@@ -1043,6 +1042,8 @@
       if(b.dataset.tab==="orders")loadOrders();
       if(b.dataset.tab==="categories")loadCategories();
       if(b.dataset.tab==="coupons")loadCoupons();
+      if(b.dataset.tab==="analytics")loadAnalytics();
+      if(b.dataset.tab==="reviews")loadReviews();
     }));
 
     $("#new-product-btn").onclick=()=>{
@@ -1062,6 +1063,17 @@
     $("#coupon-form")?.addEventListener("submit",saveCoupon);
     $("#cancel-coupon")?.addEventListener("click",resetCouponForm);
     $("#refresh-orders").onclick=loadOrders;
+
+    $("#refresh-analytics")?.addEventListener("click",loadAnalytics);
+    $("#refresh-reviews")?.addEventListener("click",loadReviews);
+
+    $$(".analytics-filter [data-period]").forEach(button=>{
+      button.addEventListener("click",()=>{
+        $$(".analytics-filter [data-period]").forEach(x=>x.classList.toggle("active",x===button));
+        analyticsPeriod=Number(button.dataset.period);
+        loadAnalytics();
+      });
+    });
 
     await loadProductMedia(null);
     await loadCategories();
@@ -1358,6 +1370,312 @@
           loadStats();
         }
       };
+    };
+  }
+
+  // =====================================================
+  // SALES ANALYTICS
+  // =====================================================
+
+  let analyticsPeriod=30;
+
+  function drawSalesChart(points){
+    const canvas=$("#sales-chart");
+    if(!canvas)return;
+
+    const ctx=canvas.getContext("2d");
+    const width=canvas.clientWidth||500;
+    const height=260;
+    const ratio=window.devicePixelRatio||1;
+
+    canvas.width=width*ratio;
+    canvas.height=height*ratio;
+    canvas.style.height=height+"px";
+    ctx.scale(ratio,ratio);
+    ctx.clearRect(0,0,width,height);
+
+    const pad={left:55,right:15,top:20,bottom:42};
+    const chartW=width-pad.left-pad.right;
+    const chartH=height-pad.top-pad.bottom;
+    const max=Math.max(1,...points.map(x=>x.value));
+    const steps=4;
+
+    ctx.font="11px Arial";
+    ctx.strokeStyle="#dedbd2";
+    ctx.fillStyle="#777";
+    ctx.lineWidth=1;
+
+    for(let i=0;i<=steps;i++){
+      const y=pad.top+(chartH/steps)*i;
+      const val=max-(max/steps)*i;
+      ctx.beginPath();
+      ctx.moveTo(pad.left,y);
+      ctx.lineTo(width-pad.right,y);
+      ctx.stroke();
+      ctx.textAlign="right";
+      ctx.fillText(Math.round(val).toLocaleString(),pad.left-8,y+4);
+    }
+
+    if(!points.length)return;
+
+    const step=points.length>1?chartW/(points.length-1):0;
+
+    ctx.beginPath();
+    points.forEach((p,i)=>{
+      const x=pad.left+i*step;
+      const y=pad.top+chartH-(p.value/max)*chartH;
+      if(i===0)ctx.moveTo(x,y);
+      else ctx.lineTo(x,y);
+    });
+
+    ctx.strokeStyle="#b58b35";
+    ctx.lineWidth=2.5;
+    ctx.stroke();
+
+    points.forEach((p,i)=>{
+      const x=pad.left+i*step;
+      const y=pad.top+chartH-(p.value/max)*chartH;
+
+      ctx.beginPath();
+      ctx.arc(x,y,3.5,0,Math.PI*2);
+      ctx.fillStyle="#b58b35";
+      ctx.fill();
+
+      if(points.length<=15||i%Math.ceil(points.length/8)===0||i===points.length-1){
+        ctx.fillStyle="#777";
+        ctx.textAlign="center";
+        ctx.fillText(p.label,x,height-15);
+      }
+    });
+  }
+
+  async function loadAnalytics(){
+    const message=$("#analytics-message");
+    if(!$("#tab-analytics"))return;
+
+    if(message){
+      message.classList.remove("hidden");
+      message.textContent="Loading sales analytics...";
+    }
+
+    const start=new Date();
+    start.setDate(start.getDate()-analyticsPeriod+1);
+    start.setHours(0,0,0,0);
+
+    const {data:orders,error}=await sb.from("orders")
+      .select("id,total,subtotal,shipping_fee,discount,order_status,payment_status,created_at")
+      .gte("created_at",start.toISOString())
+      .order("created_at",{ascending:true});
+
+    if(error){
+      if(message)message.textContent="Analytics error: "+error.message;
+      return;
+    }
+
+    const list=orders||[];
+    const completed=list.filter(o=>
+      o.order_status==="delivered"&&o.payment_status==="collected"
+    );
+
+    const revenue=completed.reduce((n,o)=>n+Number(o.total||0),0);
+    const average=completed.length?revenue/completed.length:0;
+
+    $("#analytics-revenue").textContent=money(revenue);
+    $("#analytics-delivered").textContent=completed.length;
+    $("#analytics-average").textContent=money(average);
+    $("#analytics-orders").textContent=list.length;
+
+    // Daily sales for periods up to 90 days; monthly for longer periods.
+    const useMonthly=analyticsPeriod>90;
+    const buckets={};
+
+    completed.forEach(o=>{
+      const d=new Date(o.created_at);
+      const key=useMonthly
+        ? `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`
+        : `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+
+      buckets[key]=(buckets[key]||0)+Number(o.total||0);
+    });
+
+    const points=[];
+    if(useMonthly){
+      const count=Math.min(12,Math.ceil(analyticsPeriod/30));
+      const d=new Date(start.getFullYear(),start.getMonth(),1);
+
+      for(let i=0;i<count;i++){
+        const key=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;
+        points.push({label:d.toLocaleDateString("en",{month:"short"}),value:buckets[key]||0});
+        d.setMonth(d.getMonth()+1);
+      }
+    }else{
+      for(let i=0;i<analyticsPeriod;i++){
+        const d=new Date(start);
+        d.setDate(start.getDate()+i);
+        const key=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+        points.push({label:d.toLocaleDateString("en",{day:"numeric",month:"short"}),value:buckets[key]||0});
+      }
+    }
+
+    drawSalesChart(points);
+
+    // Order status breakdown
+    const statuses={};
+    list.forEach(o=>{
+      const key=o.order_status||"unknown";
+      statuses[key]=(statuses[key]||0)+1;
+    });
+
+    const statusBox=$("#analytics-status");
+    if(statusBox){
+      statusBox.innerHTML=Object.entries(statuses).length
+        ? Object.entries(statuses).map(([key,count])=>`
+          <div class="total-line">
+            <span>${esc(statusLabels[key]||key)}</span>
+            <strong>${count}</strong>
+          </div>
+        `).join("")
+        : "<p>No orders in this period.</p>";
+    }
+
+    // Best-selling products among delivered and collected orders only.
+    const completedIds=completed.map(o=>o.id);
+    const productBox=$("#analytics-products");
+
+    if(completedIds.length){
+      const {data:items,error:itemError}=await sb.from("order_items")
+        .select("product_title,quantity,line_total,order_id")
+        .in("order_id",completedIds);
+
+      if(itemError){
+        productBox.textContent="Could not load product sales: "+itemError.message;
+      }else{
+        const totals={};
+
+        (items||[]).forEach(item=>{
+          const name=item.product_title||"Unknown product";
+          if(!totals[name])totals[name]={quantity:0,revenue:0};
+          totals[name].quantity+=Number(item.quantity||0);
+          totals[name].revenue+=Number(item.line_total||0);
+        });
+
+        const best=Object.entries(totals)
+          .sort((a,b)=>b[1].quantity-a[1].quantity)
+          .slice(0,10);
+
+        productBox.innerHTML=best.length?best.map(([name,data],index)=>`
+          <div class="total-line">
+            <span>${index+1}. ${esc(name)}<br><small>${data.quantity} units sold</small></span>
+            <strong>${money(data.revenue)}</strong>
+          </div>
+        `).join(""):"<p>No completed product sales in this period.</p>";
+      }
+    }else{
+      productBox.innerHTML="<p>No delivered and collected orders in this period.</p>";
+    }
+
+    if(message){
+      message.textContent=`Showing the last ${analyticsPeriod} days. Revenue includes only delivered orders with collected payment.`;
+    }
+  }
+
+  // =====================================================
+  // CUSTOMER REVIEWS - ADMIN APPROVAL
+  // =====================================================
+
+  async function loadReviews(){
+    const list=$("#admin-reviews-list");
+    if(!list)return;
+
+    list.innerHTML='<div class="panel">Loading reviews...</div>';
+
+    const {data,error}=await sb.from("product_reviews")
+      .select("id,product_id,order_id,rating,review_text,status,created_at,products(title)")
+      .order("created_at",{ascending:false})
+      .limit(300);
+
+    if(error){
+      list.innerHTML=`<div class="notice">Could not load reviews: ${esc(error.message)}</div>`;
+      return;
+    }
+
+    const reviews=data||[];
+
+    const counts={
+      pending:reviews.filter(r=>r.status==="pending").length,
+      approved:reviews.filter(r=>r.status==="approved").length,
+      rejected:reviews.filter(r=>r.status==="rejected").length
+    };
+
+    if($("#reviews-pending-count"))$("#reviews-pending-count").textContent=counts.pending;
+    if($("#reviews-approved-count"))$("#reviews-approved-count").textContent=counts.approved;
+    if($("#reviews-rejected-count"))$("#reviews-rejected-count").textContent=counts.rejected;
+
+    if(!reviews.length){
+      list.innerHTML='<div class="panel">No customer reviews have been submitted yet.</div>';
+      return;
+    }
+
+    list.innerHTML=reviews.map(r=>`
+      <article class="review-card">
+        <div class="review-stars">${"★".repeat(Number(r.rating)||0)}${"☆".repeat(5-(Number(r.rating)||0))}</div>
+        <h3>${esc(r.products?.title||"Product")}</h3>
+        <p>${esc(r.review_text)}</p>
+        <p class="small muted">
+          ${new Date(r.created_at).toLocaleString()} ·
+          Order reference: ${esc(r.order_id)}
+        </p>
+        <p class="status-${esc(r.status)}">Status: ${esc(r.status)}</p>
+        <div class="review-actions">
+          ${r.status!=="approved"?`<button type="button" data-review-action="approved" data-review-id="${esc(r.id)}">Approve</button>`:""}
+          ${r.status!=="rejected"?`<button type="button" data-review-action="rejected" data-review-id="${esc(r.id)}">Reject</button>`:""}
+          <button type="button" data-review-delete="${esc(r.id)}">Delete</button>
+        </div>
+      </article>
+    `).join("");
+
+    list.onclick=async e=>{
+      const action=e.target.closest("[data-review-action]");
+      const del=e.target.closest("[data-review-delete]");
+
+      if(action){
+        const id=action.dataset.reviewId;
+        const status=action.dataset.reviewAction;
+
+        if(!confirm(`Are you sure you want to ${status} this review?`))return;
+
+        action.disabled=true;
+
+        const {error:updateError}=await sb.from("product_reviews")
+          .update({status}).eq("id",id);
+
+        if(updateError){
+          toast("Could not update review: "+updateError.message);
+          action.disabled=false;
+          return;
+        }
+
+        toast(`Review ${status}.`);
+        await loadReviews();
+      }
+
+      if(del){
+        if(!confirm("Permanently delete this review?"))return;
+
+        del.disabled=true;
+
+        const {error:deleteError}=await sb.from("product_reviews")
+          .delete().eq("id",del.dataset.reviewDelete);
+
+        if(deleteError){
+          toast("Could not delete review: "+deleteError.message);
+          del.disabled=false;
+          return;
+        }
+
+        toast("Review deleted.");
+        await loadReviews();
+      }
     };
   }
 

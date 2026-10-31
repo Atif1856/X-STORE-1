@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="en">
 <head>
@@ -5,13 +6,35 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Admin Dashboard | X STORE</title>
 <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="logo.css">
+<link rel="stylesheet" href="theme.css">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script defer src="config.js"></script>
 <script defer src="app.js"></script>
 <script defer src="delivery-admin.js?v=1"></script>
 <script defer src="banner-admin.js"></script>
+<style>
+.analytics-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:16px;margin:20px 0}
+.analytics-card,.analytics-panel,.review-card{background:var(--panel,#fff);border:1px solid rgba(0,0,0,.1);border-radius:14px;padding:18px}
+.analytics-card span{display:block;color:#777;font-size:13px}
+.analytics-card strong{display:block;font-size:25px;margin-top:8px}
+.analytics-panels{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}
+.analytics-panel h3{margin-top:0}
+.analytics-panel canvas{width:100%;max-height:280px}
+.analytics-filter{display:flex;gap:10px;flex-wrap:wrap;margin:15px 0}
+.analytics-filter button,.review-actions button{padding:9px 14px;border:1px solid #aaa;border-radius:8px;cursor:pointer}
+.review-card{margin:12px 0}
+.review-card p{overflow-wrap:anywhere}
+.review-actions{display:flex;gap:8px;flex-wrap:wrap}
+.review-stars{color:#b58b35;font-size:20px}
+.status-pending{color:#a56b00}
+.status-approved{color:#16834b}
+.status-rejected{color:#b3261e}
+@media(max-width:600px){.admin-tabs{overflow-x:auto;white-space:nowrap}.analytics-card strong{font-size:21px}}
+</style>
 </head>
 <body>
+
 <header class="site-header admin-header">
 <a class="brand" href="index.html"><span class="brand-x">X</span> STORE <small>ADMIN</small></a>
 <div class="admin-actions">
@@ -19,28 +42,42 @@
 <button id="logout-btn" class="btn btn-outline btn-small">Log out</button>
 </div>
 </header>
+
 <main class="admin-wrap">
+
 <div class="admin-welcome">
-<div><p class="eyebrow">STORE CONTROL</p><h1>Admin dashboard</h1><p class="muted">Manage your products and COD orders.</p></div>
+<div>
+<p class="eyebrow">STORE CONTROL</p>
+<h1>Admin dashboard</h1>
+<p class="muted">Manage your products, orders, sales and reviews.</p>
+</div>
 <span id="admin-user" class="admin-user"></span>
 </div>
+
 <div id="admin-alert" class="notice hidden"></div>
+
 <section class="stats-grid" id="admin-stats">
 <div class="stat-card"><span>Products</span><strong>—</strong></div>
 <div class="stat-card"><span>Total orders</span><strong>—</strong></div>
 <div class="stat-card"><span>Pending orders</span><strong>—</strong></div>
 <div class="stat-card"><span>Delivered order value</span><strong>—</strong></div>
 </section>
+
 <div class="admin-tabs">
 <button class="tab-btn active" data-tab="products">Products</button>
 <button class="tab-btn" data-tab="orders">Orders</button>
 <button class="tab-btn" data-tab="categories">Categories</button>
 <button class="tab-btn" data-tab="delivery">Delivery Charges</button>
 <button class="tab-btn" data-tab="coupons">Coupons</button>
+<button class="tab-btn" data-tab="analytics">Sales Analytics</button>
+<button class="tab-btn" data-tab="reviews">Customer Reviews</button>
 </div>
 
 <section id="tab-products" class="admin-tab">
-<div class="admin-section-heading"><h2>Product management</h2><button id="new-product-btn" class="btn btn-dark">+ Add product</button></div>
+<div class="admin-section-heading">
+<h2>Product management</h2>
+<button id="new-product-btn" class="btn btn-dark">+ Add product</button>
+</div>
 <form id="product-form" class="panel form-grid hidden">
 <input type="hidden" name="id">
 <label class="full">Product title<input name="title" required maxlength="180"></label>
@@ -61,34 +98,51 @@
 <label class="full">Full description<textarea name="description" rows="4"></textarea></label>
 <label class="check-label full"><input name="is_featured" type="checkbox">Feature this product on the homepage</label>
 <label class="check-label full"><input name="is_published" type="checkbox" checked>Publish product on storefront</label>
-<div class="form-actions full"><button class="btn btn-dark" type="submit">Save product</button><button id="cancel-product-btn" class="btn btn-outline" type="button">Cancel</button></div>
+<div class="form-actions full">
+<button class="btn btn-dark" type="submit">Save product</button>
+<button id="cancel-product-btn" class="btn btn-outline" type="button">Cancel</button>
+</div>
 </form>
-<div class="table-wrap panel"><table><thead><tr><th>Product</th><th>Price</th><th>Stock</th><th>Status</th><th>Actions</th></tr></thead><tbody id="admin-products"><tr><td colspan="5">Loading…</td></tr></tbody></table></div>
+<div class="table-wrap panel">
+<table><thead><tr><th>Product</th><th>Price</th><th>Stock</th><th>Status</th><th>Actions</th></tr></thead>
+<tbody id="admin-products"><tr><td colspan="5">Loading…</td></tr></tbody></table>
+</div>
 </section>
 
 <section id="tab-orders" class="admin-tab hidden">
 <div class="admin-section-heading"><h2>Order management</h2><button id="refresh-orders" class="btn btn-outline">Refresh</button></div>
-<div class="table-wrap panel"><table><thead><tr><th>Order</th><th>Customer</th><th>Total</th><th>Payment</th><th>Status</th><th>Update</th><th>Details</th></tr></thead><tbody id="admin-orders"><tr><td colspan="7">Loading…</td></tr></tbody></table></div>
+<div class="table-wrap panel">
+<table><thead><tr><th>Order</th><th>Customer</th><th>Total</th><th>Payment</th><th>Status</th><th>Update</th><th>Details</th></tr></thead>
+<tbody id="admin-orders"><tr><td colspan="7">Loading…</td></tr></tbody></table>
+</div>
 <div id="order-detail" class="panel hidden"></div>
 </section>
 
 <section id="tab-categories" class="admin-tab hidden">
 <div class="admin-section-heading"><h2>Categories</h2></div>
-<form id="category-form" class="panel inline-form"><label>Category name<input name="name" required maxlength="100"></label><button class="btn btn-dark" type="submit">Add category</button></form>
+<form id="category-form" class="panel inline-form">
+<label>Category name<input name="name" required maxlength="100"></label>
+<button class="btn btn-dark" type="submit">Add category</button>
+</form>
 <div id="category-admin-list" class="category-admin-list panel">Loading…</div>
 </section>
 
 <section id="tab-delivery" class="admin-tab hidden">
 <div class="admin-section-heading"><h2>City-wise Delivery Charges</h2></div>
-<div class="panel"><p class="muted">Add a city and set its delivery fee. Customers will enter their city at checkout.</p>
+<div class="panel">
+<p class="muted">Add a city and set its delivery fee. Customers will enter their city at checkout.</p>
 <form id="delivery-charge-form" class="form-grid">
 <label>City<input name="city" required maxlength="80" placeholder="e.g. Karachi"></label>
 <label>Province<input name="province" required maxlength="80" placeholder="e.g. Sindh"></label>
 <label>Delivery fee (PKR)<input name="fee" type="number" min="0" step="0.01" required placeholder="Enter amount"></label>
 <button class="btn btn-dark full" type="submit">Save delivery charge</button>
 </form>
-<div id="delivery-charge-message" class="notice hidden" role="status"></div></div>
-<div class="table-wrap panel"><table><thead><tr><th>City</th><th>Province</th><th>Fee</th><th>Status</th><th>Actions</th></tr></thead><tbody id="delivery-charge-list"><tr><td colspan="5">Loading…</td></tr></tbody></table></div>
+<div id="delivery-charge-message" class="notice hidden" role="status"></div>
+</div>
+<div class="table-wrap panel">
+<table><thead><tr><th>City</th><th>Province</th><th>Fee</th><th>Status</th><th>Actions</th></tr></thead>
+<tbody id="delivery-charge-list"><tr><td colspan="5">Loading…</td></tr></tbody></table>
+</div>
 </section>
 
 <section id="tab-coupons" class="admin-tab hidden">
@@ -96,16 +150,75 @@
 <form id="coupon-form" class="admin-form">
 <input type="hidden" name="id">
 <label>Coupon Code</label><input name="code" placeholder="e.g. SAVE10" required>
-<label>Discount Type</label><select name="discount_type" required><option value="percent">Percentage (%)</option><option value="fixed">Fixed Amount (PKR)</option></select>
+<label>Discount Type</label>
+<select name="discount_type" required><option value="percent">Percentage (%)</option><option value="fixed">Fixed Amount (PKR)</option></select>
 <label>Discount Value</label><input name="discount_value" type="number" min="1" step="0.01" required>
 <label>Minimum Order Amount (PKR)</label><input name="min_order_amount" type="number" min="0" value="0" required>
 <label>Maximum Uses (blank = unlimited)</label><input name="max_uses" type="number" min="1">
 <label>Expiry Date (optional)</label><input name="expires_at" type="datetime-local">
 <button type="submit">Save Coupon</button><button type="button" id="cancel-coupon">Cancel</button>
 </form>
-<div class="table-wrap"><table><thead><tr><th>Code</th><th>Discount</th><th>Minimum</th><th>Uses</th><th>Expiry</th><th>Status</th><th>Actions</th></tr></thead><tbody id="coupon-admin-list"><tr><td colspan="7">No coupons loaded.</td></tr></tbody></table></div>
+<div class="table-wrap">
+<table><thead><tr><th>Code</th><th>Discount</th><th>Minimum</th><th>Uses</th><th>Expiry</th><th>Status</th><th>Actions</th></tr></thead>
+<tbody id="coupon-admin-list"><tr><td colspan="7">No coupons loaded.</td></tr></tbody></table>
+</div>
 </section>
+
+<!-- SALES ANALYTICS -->
+<section id="tab-analytics" class="admin-tab hidden">
+<div class="admin-section-heading">
+<h2>Sales Analytics</h2>
+<button id="refresh-analytics" class="btn btn-outline">Refresh Analytics</button>
+</div>
+<div class="analytics-filter">
+<button type="button" data-period="7">7 Days</button>
+<button type="button" data-period="30">30 Days</button>
+<button type="button" data-period="90">90 Days</button>
+<button type="button" data-period="365">12 Months</button>
+</div>
+<div id="analytics-message" class="notice hidden"></div>
+<div class="analytics-grid">
+<div class="analytics-card"><span>Collected Revenue</span><strong id="analytics-revenue">PKR —</strong></div>
+<div class="analytics-card"><span>Delivered Orders</span><strong id="analytics-delivered">—</strong></div>
+<div class="analytics-card"><span>Average Order Value</span><strong id="analytics-average">PKR —</strong></div>
+<div class="analytics-card"><span>Total Orders</span><strong id="analytics-orders">—</strong></div>
+</div>
+<div class="analytics-panels">
+<div class="analytics-panel">
+<h3>Sales Trend</h3>
+<canvas id="sales-chart"></canvas>
+</div>
+<div class="analytics-panel">
+<h3>Order Status Breakdown</h3>
+<div id="analytics-status">Analytics loading…</div>
+</div>
+<div class="analytics-panel">
+<h3>Best-selling Products</h3>
+<div id="analytics-products">Analytics loading…</div>
+</div>
+</div>
+</section>
+
+<!-- CUSTOMER REVIEWS -->
+<section id="tab-reviews" class="admin-tab hidden">
+<div class="admin-section-heading">
+<h2>Customer Reviews</h2>
+<button id="refresh-reviews" class="btn btn-outline">Refresh Reviews</button>
+</div>
+<p class="muted">Review approval dashboard. Only approved reviews should appear on your storefront.</p>
+<div class="analytics-grid">
+<div class="analytics-card"><span>Pending Reviews</span><strong id="reviews-pending-count">—</strong></div>
+<div class="analytics-card"><span>Approved Reviews</span><strong id="reviews-approved-count">—</strong></div>
+<div class="analytics-card"><span>Rejected Reviews</span><strong id="reviews-rejected-count">—</strong></div>
+</div>
+<div id="reviews-message" class="notice hidden"></div>
+<div id="admin-reviews-list">
+<div class="panel">Reviews will appear here once review-management functionality is connected.</div>
+</div>
+</section>
+
 </main>
+
 <div id="toast" class="toast" role="status"></div>
 </body>
 </html>

@@ -1,24 +1,115 @@
-/* X STORE theme: red #D93333 + ivory #F1F0E8 */
-:root{--ivory:#F1F0E8;--gold:#D93333;--red:#D93333;--red-dark:#B52A2A;--border:#DCDACD;--muted:#6B665E}
-::selection{background:#D93333;color:#fff}
-.site-header{background:rgba(241,240,232,.94)}
-.eyebrow{color:#D93333}
-.btn-dark{background:#D93333;color:#fff}
-.btn-dark:hover{background:#B52A2A}
-.chip.selected,.chip:hover{background:#D93333;border-color:#D93333}
-.count{background:#D93333;color:#fff}
-.hero-art{background:#E6E4D8}
-.hero-orbit{border-color:rgba(217,51,51,.7);box-shadow:0 0 0 35px rgba(217,51,51,.07),0 0 0 70px rgba(217,51,51,.04)}
-.hero-stamp{background:#D93333;color:#F1F0E8}
-.hero-art>p{color:#6B665E}
-.section{background:#F7F6F0}
-.editorial{background:#E6E4D8}
-.product-image{background:#E9E7DC}
-.product-tag{background:#D93333;color:#fff}
-.product-info h3 a:hover{color:#D93333}
-.text-button{color:#B52A2A}
-.notice{background:#F7F6F0;color:#6B665E}
-.status-pill{background:rgba(217,51,51,.1);color:#B52A2A}
-.search-input:focus,input:focus,textarea:focus,select:focus{border-color:#D93333;outline:2px solid rgba(217,51,51,.18)}
-.site-header nav a:hover,footer a:hover{color:#D93333}
-.tab-btn.active{border-color:#D93333}
+
+/* X STORE — OFF-WHITE + BLACK + CHAMPAGNE GOLD */
+
+:root {
+  --ivory: #F3F1EA;
+  --ink: #111111;
+  --gold: #B69A6A;
+  --gold-light: #D6C19A;
+  --white: #FFFFFF;
+  --border: #DED9CF;
+  --muted: #6B6861;
+}
+
+::selection {
+  background: #B69A6A;
+  color: #111111;
+}
+
+.site-header {
+  background: rgba(247, 245, 239, 0.90);
+}
+
+.eyebrow {
+  color: #9B8052;
+}
+
+.btn-dark {
+  background: linear-gradient(145deg, #242424, #080808);
+  color: #FFFFFF;
+}
+
+.btn-dark:hover {
+  background: linear-gradient(145deg, #393327, #111111);
+}
+
+.chip.selected,
+.chip:hover {
+  background: #171717;
+  border-color: #B69A6A;
+  color: #FFFFFF;
+}
+
+.count {
+  background: linear-gradient(145deg, #D6C19A, #A88B5D);
+  color: #171717;
+}
+
+.hero-art {
+  background: linear-gradient(145deg, #EAE3D5, #DCD1BE);
+}
+
+.hero-orbit {
+  border-color: rgba(182, 154, 106, 0.8);
+  box-shadow:
+    0 0 0 35px rgba(182, 154, 106, 0.08),
+    0 0 0 70px rgba(182, 154, 106, 0.05);
+}
+
+.hero-stamp {
+  background: linear-gradient(145deg, #252525, #080808);
+  color: #D6C19A;
+}
+
+.section {
+  background: linear-gradient(145deg, #FCFBF7, #F2EFE7);
+}
+
+.editorial {
+  background: linear-gradient(135deg, #E8E0D2, #F0EBE2);
+}
+
+.product-image {
+  background: linear-gradient(145deg, #F0ECE3, #E5DFD3);
+}
+
+.product-tag {
+  background: linear-gradient(145deg, #F8F4EA, #E8DDC8);
+  color: #332C20;
+  border: 1px solid rgba(182, 154, 106, 0.35);
+}
+
+.product-info h3 a:hover {
+  color: #9B8052;
+}
+
+.text-button {
+  color: #77613B;
+}
+
+.notice {
+  background: #F5F0E5;
+  color: #65583F;
+}
+
+.status-pill {
+  background: rgba(182, 154, 106, 0.14);
+  color: #77613B;
+}
+
+.search-input:focus,
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: #B69A6A;
+  outline: 2px solid rgba(182, 154, 106, 0.18);
+}
+
+.site-header nav a:hover,
+footer a:hover {
+  color: #9B8052;
+}
+
+.tab-btn.active {
+  border-color: #B69A6A;
+}

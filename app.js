@@ -2,7 +2,8 @@
 (() => {
   const cfg = window.XSTORE_CONFIG || {};
   const configured = cfg.SUPABASE_URL && cfg.SUPABASE_ANON_KEY &&
-    cfg.SUPABASE_URL.startsWith("https://") && !cfg.SUPABASE_URL.includes("PASTE_") &&
+    cfg.SUPABASE_URL.startsWith("https://") &&
+    !cfg.SUPABASE_URL.includes("PASTE_") &&
     !cfg.SUPABASE_ANON_KEY.includes("PASTE_");
 
   const sb = configured && window.supabase
@@ -26,6 +27,8 @@
       el.textContent=msg;
       el.classList.add("show");
       setTimeout(()=>el.classList.remove("show"),3200);
+    } else {
+      alert(msg);
     }
   };
 
@@ -34,8 +37,12 @@
   };
 
   const getCart = () => {
-    try{return JSON.parse(localStorage.getItem("xstore_cart")||"[]")}
-    catch{return []}
+    try {
+      const cart=JSON.parse(localStorage.getItem("xstore_cart")||"[]");
+      return Array.isArray(cart) ? cart : [];
+    } catch {
+      return [];
+    }
   };
 
   const setCart = items => {
@@ -43,10 +50,11 @@
     updateCartCount();
   };
 
+  const cartKey = item => `${item.id}|${item.selected_size||""}`;
+
   const updateCartCount = () => {
     const el=$("#cart-count");
     if(el)el.textContent=getCart().reduce((n,x)=>n+Number(x.qty||0),0);
-
     updateFloatingCheckout();
   };
 
@@ -59,84 +67,42 @@
     if(!bar){
       bar=document.createElement("div");
       bar.id="floating-checkout";
-
       bar.innerHTML=`
         <div class="floating-cart-info">
           <strong id="floating-cart-count">0 Items</strong>
           <span id="floating-cart-total">PKR 0</span>
         </div>
-        <a href="checkout.html" class="floating-checkout-btn">
-          Checkout →
-        </a>
+        <a href="checkout.html" class="floating-checkout-btn">Checkout →</a>
       `;
-
       document.body.appendChild(bar);
 
       const style=document.createElement("style");
       style.textContent=`
         #floating-checkout{
-          position:fixed;
-          z-index:9999;
-          left:50%;
-          bottom:22px;
-          transform:translateX(-50%);
-          width:min(440px,calc(100% - 28px));
-          display:none;
-          align-items:center;
-          justify-content:space-between;
-          gap:15px;
-          padding:13px 16px;
-          background:#f1f0e8;
-          border:1px solid rgba(217,51,51,.35);
-          border-radius:16px;
-          box-shadow:0 8px 35px rgba(0,0,0,.2);
-          color:#171717;
+          position:fixed;z-index:9999;left:50%;bottom:22px;
+          transform:translateX(-50%);width:min(440px,calc(100% - 28px));
+          display:none;align-items:center;justify-content:space-between;
+          gap:15px;padding:13px 16px;background:#f1f0e8;
+          border:1px solid rgba(217,51,51,.35);border-radius:16px;
+          box-shadow:0 8px 35px rgba(0,0,0,.2);color:#171717;
         }
-        .floating-cart-info{
-          display:flex;
-          flex-direction:column;
-          gap:4px;
-          font-size:14px;
-        }
-        .floating-cart-info span{
-          font-size:12px;
-          opacity:.7;
-        }
-        .floating-checkout-btn{
-          background:#d93333;
-          color:white;
-          text-decoration:none;
-          padding:12px 19px;
-          border-radius:10px;
-          font-weight:700;
-          white-space:nowrap;
-        }
-        .floating-checkout-btn:hover{
-          background:#b92323;
-        }
-        @media(max-width:480px){
-          #floating-checkout{
-            bottom:12px;
-          }
-        }
+        .floating-cart-info{display:flex;flex-direction:column;gap:4px;font-size:14px}
+        .floating-cart-info span{font-size:12px;opacity:.7}
+        .floating-checkout-btn{background:#d93333;color:white;text-decoration:none;
+          padding:12px 19px;border-radius:10px;font-weight:700;white-space:nowrap}
+        .floating-checkout-btn:hover{background:#b92323}
+        @media(max-width:480px){#floating-checkout{bottom:12px}}
       `;
-
       document.head.appendChild(style);
     }
 
     const cart=getCart();
     const count=cart.reduce((n,x)=>n+Number(x.qty||0),0);
-    const total=cart.reduce(
-      (n,x)=>n+Number(x.price||0)*Number(x.qty||0),0
-    );
+    const total=cart.reduce((n,x)=>n+Number(x.price||0)*Number(x.qty||0),0);
 
     bar.style.display=count>0?"flex":"none";
-
-    $("#floating-cart-count").textContent=
-      `${count} ${count===1?"Item":"Items"}`;
-
-    $("#floating-cart-total").textContent=
-      `Items Total: ${money(total)}`;
+    $("#floating-cart-count").textContent=`${count} ${count===1?"Item":"Items"}`;
+    $("#floating-cart-total").textContent=`Items Total: ${money(total)}`;
   }
 
   const productPrice = p => Number(
@@ -155,16 +121,23 @@
       : "") ||
     imgFallback;
 
+  const normalizeSizes = sizes => {
+    if(Array.isArray(sizes))return sizes.map(x=>String(x).trim()).filter(Boolean);
+    return [];
+  };
+
   async function productsQuery(){
-    if(!sb) return {data:[],error:new Error("Supabase is not configured.")};
+    if(!sb)return {data:[],error:new Error("Supabase is not configured.")};
 
     return sb.from("products")
-      .select("id,title,slug,description,short_description,price,sale_price,sku,stock,image_url,image_path,is_featured,is_published,category_id,categories(name)")
+      .select("id,title,slug,description,short_description,price,sale_price,sku,stock,image_url,image_path,is_featured,is_published,category_id,sizes,categories(name)")
       .eq("is_published",true)
       .order("created_at",{ascending:false});
   }
 
   function productCard(p){
+    const hasSizes=normalizeSizes(p.sizes).length>0;
+
     return `<article class="product-card">
       <a class="product-image" href="product.html?id=${encodeURIComponent(p.id)}">
         <img loading="lazy" src="${esc(imageOf(p))}" alt="${esc(p.title)}" onerror="this.src='${imgFallback}'">
@@ -179,7 +152,7 @@
           ${Number(p.sale_price)>0&&Number(p.sale_price)<Number(p.price)?`<del>${money(p.price)}</del>`:""}
         </div>
         <button class="btn btn-dark btn-block add-cart" data-id="${esc(p.id)}" ${Number(p.stock)<=0?"disabled":""}>
-          ${Number(p.stock)<=0?"Out of stock":"Add to cart"}
+          ${Number(p.stock)<=0?"Out of stock":hasSizes?"Choose size":"Add to cart"}
         </button>
       </div>
     </article>`;
@@ -211,7 +184,6 @@
 
     const draw=()=>{
       const q=(search?.value||"").toLowerCase();
-
       const filtered=all.filter(p=>
         (active==="All"||p.categories?.name===active) &&
         `${p.title} ${p.description||""} ${p.categories?.name||""}`.toLowerCase().includes(q)
@@ -231,13 +203,8 @@
     catEl?.addEventListener("click",e=>{
       const b=e.target.closest("[data-cat]");
       if(!b)return;
-
       active=b.dataset.cat;
-
-      $$(".chip",catEl).forEach(x=>
-        x.classList.toggle("selected",x===b)
-      );
-
+      $$(".chip",catEl).forEach(x=>x.classList.toggle("selected",x===b));
       draw();
     });
 
@@ -250,7 +217,7 @@
     if(!sb){announceConfig();return;}
 
     const {data,error}=await sb.from("products")
-      .select("id,title,slug,price,sale_price,stock,image_url,image_path,is_published")
+      .select("id,title,slug,price,sale_price,stock,image_url,image_path,is_published,sizes")
       .eq("id",id)
       .eq("is_published",true)
       .single();
@@ -260,27 +227,35 @@
       return;
     }
 
+    if(Number(data.stock)<1){
+      toast("Out of stock.");
+      return;
+    }
+
+    if(normalizeSizes(data.sizes).length){
+      location.href=`product.html?id=${encodeURIComponent(id)}`;
+      return;
+    }
+
     const cart=getCart();
-    const found=cart.find(x=>x.id===id);
+    const found=cart.find(x=>x.id===id&&!x.selected_size);
+    const totalQty=cart.filter(x=>x.id===id).reduce((n,x)=>n+Number(x.qty||0),0);
+
+    if(totalQty+1>Number(data.stock)){
+      toast("Not enough stock available.");
+      return;
+    }
 
     if(found){
-      if(found.qty+1>Number(data.stock)){
-        toast("Not enough stock available.");
-        return;
-      }
       found.qty++;
     }else{
-      if(Number(data.stock)<1){
-        toast("Out of stock.");
-        return;
-      }
-
       cart.push({
         id:data.id,
         title:data.title,
         price:productPrice(data),
         image_url:data.image_url,
         image_path:data.image_path,
+        selected_size:null,
         qty:1
       });
     }
@@ -292,11 +267,9 @@
   async function renderCart(){
     const box=$("#cart-items");
     const sum=$("#cart-summary");
-
     if(!box||!sum)return;
 
     updateCartCount();
-
     const cart=getCart();
 
     if(!cart.length){
@@ -311,10 +284,10 @@
       return;
     }
 
-    const ids=cart.map(x=>x.id);
+    const ids=[...new Set(cart.map(x=>x.id))];
 
     const {data,error}=await sb.from("products")
-      .select("id,title,price,sale_price,stock,image_url,image_path,is_published")
+      .select("id,title,price,sale_price,stock,image_url,image_path,is_published,sizes")
       .in("id",ids);
 
     if(error){
@@ -329,37 +302,54 @@
       const p=map.get(item.id);
       if(!p||!p.is_published)continue;
 
+      const size=item.selected_size||null;
+      const sizes=normalizeSizes(p.sizes);
+
+      if(size&&!sizes.includes(size))continue;
+      if(!size&&sizes.length)continue;
+
       valid.push({
         ...item,
         title:p.title,
         price:productPrice(p),
         stock:p.stock,
         image_url:p.image_url,
-        image_path:p.image_path
+        image_path:p.image_path,
+        selected_size:size
       });
     }
+
+    // Keep total quantity across all sizes within product stock.
+    const totals={};
+    valid.forEach(x=>totals[x.id]=(totals[x.id]||0)+Number(x.qty||0));
+
+    valid=valid.filter(x=>Number(x.stock)>=totals[x.id]);
 
     setCart(valid);
 
     const subtotal=valid.reduce((n,p)=>n+p.price*p.qty,0);
 
     box.innerHTML=valid.length
-      ? valid.map(p=>`
-        <div class="cart-item">
-          <img src="${esc(imageOf(p))}" alt="">
-          <div class="cart-item-main">
-            <strong>${esc(p.title)}</strong>
-            <span>${money(p.price)} each</span>
-            <div class="qty-control">
-              <button data-qty="-1" data-id="${esc(p.id)}" aria-label="Decrease quantity">−</button>
-              <span>${p.qty}</span>
-              <button data-qty="1" data-id="${esc(p.id)}" data-stock="${Number(p.stock)}" aria-label="Increase quantity">+</button>
-              <button class="text-button remove-item" data-remove="${esc(p.id)}">Remove</button>
+      ? valid.map(p=>{
+        const key=cartKey(p);
+        return `
+          <div class="cart-item">
+            <img src="${esc(imageOf(p))}" alt="">
+            <div class="cart-item-main">
+              <strong>${esc(p.title)}</strong>
+              ${p.selected_size?`<span>Size: ${esc(p.selected_size)}</span>`:""}
+              <span>${money(p.price)} each</span>
+              <div class="qty-control">
+                <button data-qty="-1" data-key="${esc(key)}" data-stock="${Number(p.stock)}" aria-label="Decrease quantity">−</button>
+                <span>${p.qty}</span>
+                <button data-qty="1" data-key="${esc(key)}" data-stock="${Number(p.stock)}" aria-label="Increase quantity">+</button>
+                <button class="text-button remove-item" data-remove="${esc(key)}">Remove</button>
+              </div>
             </div>
+            <strong>${money(p.price*p.qty)}</strong>
           </div>
-          <strong>${money(p.price*p.qty)}</strong>
-        </div>
-      `).join("")
+        `;
+      }).join("")
       : '<p>Your cart is empty or products are no longer available.</p>';
 
     sum.innerHTML=`
@@ -376,18 +366,22 @@
       const r=e.target.closest("[data-remove]");
 
       if(r){
-        setCart(getCart().filter(x=>x.id!==r.dataset.remove));
+        setCart(getCart().filter(x=>cartKey(x)!==r.dataset.remove));
         renderCart();
       }else if(q){
         const c=getCart();
-        const i=c.find(x=>x.id===q.dataset.id);
+        const i=c.find(x=>cartKey(x)===q.dataset.key);
         if(!i)return;
 
-        const next=i.qty+Number(q.dataset.qty);
+        const change=Number(q.dataset.qty);
+        const next=Number(i.qty)+change;
+        const stock=Number(q.dataset.stock||999999);
+        const totalProductQty=c.filter(x=>x.id===i.id)
+          .reduce((n,x)=>n+Number(x.qty||0),0);
 
         if(next<1){
-          setCart(c.filter(x=>x.id!==i.id));
-        }else if(next>Number(q.dataset.stock||999999)){
+          setCart(c.filter(x=>cartKey(x)!==cartKey(i)));
+        }else if(change>0&&totalProductQty+change>stock){
           toast("Stock limit reached.");
           return;
         }else{
@@ -418,7 +412,7 @@
       return;
     }
 
-    const sub=cart.reduce((n,x)=>n+Number(x.price)*x.qty,0);
+    const sub=cart.reduce((n,x)=>n+Number(x.price)*Number(x.qty),0);
 
     if(totalEl){
       totalEl.innerHTML=`
@@ -432,17 +426,23 @@
       e.preventDefault();
 
       const btn=$('button[type="submit"]',form);
+      if(!btn)return;
       btn.disabled=true;
       btn.textContent="Submitting order…";
 
       try{
+        const ids=[...new Set(cart.map(x=>x.id))];
+
         const {data:products,error:pe}=await sb.from("products")
-          .select("id,title,sku,price,sale_price,stock,is_published")
-          .in("id",cart.map(x=>x.id));
+          .select("id,title,sku,price,sale_price,stock,is_published,sizes")
+          .in("id",ids);
 
         if(pe)throw pe;
 
         const map=new Map((products||[]).map(p=>[p.id,p]));
+        const quantities={};
+        cart.forEach(c=>quantities[c.id]=(quantities[c.id]||0)+Number(c.qty||0));
+
         let subtotal=0,items=[];
 
         for(const c of cart){
@@ -451,19 +451,29 @@
           if(!p||!p.is_published)
             throw new Error(`${c.title} is no longer available.`);
 
-          if(Number(p.stock)<c.qty)
+          if(Number(p.stock)<quantities[p.id])
             throw new Error(`Not enough stock for ${p.title}.`);
 
+          const sizes=normalizeSizes(p.sizes);
+          const selectedSize=c.selected_size||null;
+
+          if(sizes.length&&!selectedSize)
+            throw new Error(`Please select a size for ${p.title}.`);
+
+          if(selectedSize&&!sizes.includes(selectedSize))
+            throw new Error(`Selected size is unavailable for ${p.title}.`);
+
           const price=productPrice(p);
-          subtotal+=price*c.qty;
+          subtotal+=price*Number(c.qty);
 
           items.push({
             product_id:p.id,
             product_title:p.title,
             sku:p.sku||null,
             unit_price:price,
-            quantity:c.qty,
-            line_total:price*c.qty
+            quantity:Number(c.qty),
+            line_total:price*Number(c.qty),
+            selected_size:selectedSize
           });
         }
 
@@ -473,12 +483,12 @@
 
         const orderPayload={
           order_number:orderNo,
-          customer_name:String(fd.get("full_name")).trim(),
-          customer_phone:String(fd.get("phone")).trim(),
+          customer_name:String(fd.get("full_name")||"").trim(),
+          customer_phone:String(fd.get("phone")||"").trim(),
           customer_email:String(fd.get("email")||"").trim()||null,
-          delivery_address:String(fd.get("address")).trim(),
-          city:String(fd.get("city")).trim(),
-          province:String(fd.get("province")).trim(),
+          delivery_address:String(fd.get("address")||"").trim(),
+          city:String(fd.get("city")||"").trim(),
+          province:String(fd.get("province")||"").trim(),
           delivery_instructions:String(fd.get("instructions")||"").trim()||null,
           payment_method:"COD",
           payment_status:"pending_collection",
@@ -497,7 +507,6 @@
         if(oe)throw oe;
 
         const rows=items.map(i=>({...i,order_id:order.id}));
-
         const {error:ie}=await sb.from("order_items").insert(rows);
 
         if(ie){
@@ -524,16 +533,13 @@
     }
 
     const {data:{session}}=await sb.auth.getSession();
-
     if(!session){
       location.href="admin-login.html";
       return null;
     }
 
     const {data:profile,error}=await sb.from("profiles")
-      .select("role")
-      .eq("id",session.user.id)
-      .single();
+      .select("role").eq("id",session.user.id).single();
 
     if(error||profile?.role!=="admin"){
       await sb.auth.signOut();
@@ -554,7 +560,6 @@
 
       const btn=$('button[type="submit"]',form);
       const msg=$("#login-message");
-
       btn.disabled=true;
       msg.textContent="Signing in…";
 
@@ -565,7 +570,6 @@
       }
 
       const fd=new FormData(form);
-
       const {error}=await sb.auth.signInWithPassword({
         email:fd.get("email"),
         password:fd.get("password")
@@ -578,11 +582,8 @@
       }
 
       const {data:{user}}=await sb.auth.getUser();
-
       const {data:profile,error:pe}=await sb.from("profiles")
-        .select("role")
-        .eq("id",user.id)
-        .single();
+        .select("role").eq("id",user.id).single();
 
       if(pe||profile?.role!=="admin"){
         await sb.auth.signOut();
@@ -595,20 +596,16 @@
     });
   }
 
-  // COUPON MANAGEMENT
-  let editingCouponId = null;
+  // COUPONS
+  let editingCouponId=null;
 
   function resetCouponForm(){
     const form=$("#coupon-form");
     if(!form)return;
-
     form.reset();
-
     if(form.elements.id)form.elements.id.value="";
     if(form.elements.min_order_amount)form.elements.min_order_amount.value="0";
-
     editingCouponId=null;
-
     const button=form.querySelector('button[type="submit"]');
     if(button)button.textContent="Save Coupon";
   }
@@ -652,7 +649,6 @@
       if(edit){
         const c=coupons.find(x=>String(x.id)===edit.dataset.couponEdit);
         if(!c)return;
-
         const form=$("#coupon-form");
         if(!form)return;
 
@@ -679,14 +675,10 @@
       if(toggle){
         const active=toggle.dataset.active==="true";
         toggle.disabled=true;
-
         const {error}=await sb.from("coupons")
-          .update({is_active:!active})
-          .eq("id",toggle.dataset.couponToggle);
-
+          .update({is_active:!active}).eq("id",toggle.dataset.couponToggle);
         if(error)toast(error.message);
         else toast("Coupon status updated.");
-
         await loadCoupons();
       }
     };
@@ -694,7 +686,6 @@
 
   async function saveCoupon(e){
     e.preventDefault();
-
     const form=e.currentTarget;
     const button=form.querySelector('button[type="submit"]');
 
@@ -709,64 +700,50 @@
       toast("Coupon code: use 2-30 letters, numbers, hyphens or underscores.");
       return;
     }
-
     if(!["percent","fixed"].includes(type)){
       toast("Select a valid discount type.");
       return;
     }
-
     if(!Number.isFinite(value)||value<=0||(type==="percent"&&value>100)){
       toast("Enter a valid discount. Percentage cannot exceed 100.");
       return;
     }
-
     if(!Number.isFinite(minimum)||minimum<0){
       toast("Enter a valid minimum order amount.");
       return;
     }
 
     const maxUses=maxRaw===""?null:Number(maxRaw);
-
     if(maxUses!==null&&(!Number.isInteger(maxUses)||maxUses<1)){
       toast("Maximum uses must be a positive whole number.");
       return;
     }
 
     let expiry=null;
-
     if(expiryRaw){
       const parsed=new Date(expiryRaw);
-
       if(Number.isNaN(parsed.getTime())||parsed<=new Date()){
         toast("Expiry date must be in the future.");
         return;
       }
-
       expiry=parsed.toISOString();
     }
 
     const record={
-      code,
-      discount_type:type,
-      discount_value:value,
-      min_order_amount:minimum,
-      max_uses:maxUses,
-      expires_at:expiry
+      code,discount_type:type,discount_value:value,
+      min_order_amount:minimum,max_uses:maxUses,expires_at:expiry
     };
 
     button.disabled=true;
-
     try{
       const result=editingCouponId
         ? await sb.from("coupons").update(record).eq("id",editingCouponId)
         : await sb.from("coupons").insert({...record,is_active:true});
 
       if(result.error)throw result.error;
-
       toast(editingCouponId?"Coupon updated.":"Coupon created.");
       resetCouponForm();
       await loadCoupons();
-
     }catch(err){
       toast(err.message||"Could not save coupon.");
     }finally{
@@ -774,8 +751,8 @@
     }
   }
 
-  // PRODUCT MEDIA MANAGER
-  let currentProductMedia = [];
+  // PRODUCT MEDIA
+  let currentProductMedia=[];
 
   function ensureMediaManager(){
     let box=$("#product-media-manager");
@@ -783,7 +760,6 @@
 
     const videoInput=$('input[name="media_video"]');
     if(!videoInput)return null;
-
     const label=videoInput.closest("label");
     if(!label)return null;
 
@@ -791,11 +767,8 @@
     box.id="product-media-manager";
     box.className="full";
     box.style.cssText="margin-top:16px;padding:16px;border:1px solid #ddd;border-radius:12px;";
-
     box.innerHTML="<h3>Existing Product Media</h3><p class='small muted'>Save the product first to manage its media.</p>";
-
     label.insertAdjacentElement("afterend",box);
-
     return box;
   }
 
@@ -813,8 +786,7 @@
 
     const {data,error}=await sb.from("product_media")
       .select("id,product_id,media_type,storage_path,media_url,sort_order")
-      .eq("product_id",productId)
-      .order("sort_order");
+      .eq("product_id",productId).order("sort_order");
 
     if(error){
       box.innerHTML=`<h3>Existing Product Media</h3><p class="notice">Could not load media: ${esc(error.message)}</p>`;
@@ -832,23 +804,17 @@
       <h3>Existing Product Media</h3>
       <div class="media-admin-grid">
         ${currentProductMedia.map(item=>{
-          const url=item.media_url ||
-            sb.storage.from("product-media").getPublicUrl(item.storage_path).data.publicUrl;
-
+          const url=item.media_url||sb.storage.from("product-media").getPublicUrl(item.storage_path).data.publicUrl;
           return `
             <div class="media-admin-item" style="border:1px solid #ddd;padding:10px;border-radius:10px;">
-              ${
-                item.media_type==="image"
-                  ? `<img src="${esc(url)}" alt="Product image" style="width:100%;height:140px;object-fit:cover;border-radius:8px;">`
-                  : `<video src="${esc(url)}" controls style="width:100%;max-height:180px;"></video>`
-              }
+              ${item.media_type==="image"
+                ? `<img src="${esc(url)}" alt="Product image" style="width:100%;height:140px;object-fit:cover;border-radius:8px;">`
+                : `<video src="${esc(url)}" controls style="width:100%;max-height:180px;"></video>`}
               <p class="small">${item.media_type==="image"?"Image":"Video"}</p>
               <button type="button" class="text-button danger" data-media-delete="${esc(item.id)}">Delete</button>
-            </div>
-          `;
+            </div>`;
         }).join("")}
-      </div>
-    `;
+      </div>`;
 
     box.onclick=async e=>{
       const button=e.target.closest("[data-media-delete]");
@@ -856,13 +822,10 @@
 
       const item=currentProductMedia.find(x=>String(x.id)===button.dataset.mediaDelete);
       if(!item)return;
-
       if(!confirm("Delete this media file permanently?"))return;
 
       button.disabled=true;
-
-      const {error:storageError}=await sb.storage.from("product-media")
-        .remove([item.storage_path]);
+      const {error:storageError}=await sb.storage.from("product-media").remove([item.storage_path]);
 
       if(storageError){
         toast("Could not delete media file: "+storageError.message);
@@ -870,10 +833,7 @@
         return;
       }
 
-      const {error:dbError}=await sb.from("product_media")
-        .delete()
-        .eq("id",item.id);
-
+      const {error:dbError}=await sb.from("product_media").delete().eq("id",item.id);
       if(dbError){
         toast("File deleted, but its database record could not be deleted.");
         button.disabled=false;
@@ -885,7 +845,7 @@
     };
   }
 
-  // SAVE PRODUCT + ADDITIONAL MEDIA
+  // SAVE PRODUCT INCLUDING OPTIONAL SIZES
   async function saveProduct(e){
     e.preventDefault();
 
@@ -910,25 +870,26 @@
       if(sale!==null&&(!Number.isFinite(sale)||sale<0))
         throw new Error("Enter a valid sale price.");
 
+      const sizes=String(fd.get("sizes")||"")
+        .split(",")
+        .map(x=>x.trim())
+        .filter(Boolean)
+        .filter((x,i,a)=>a.indexOf(x)===i);
+
       const mainFile=fd.get("image");
       const images=[...(form.elements.media_images?.files||[])];
       const video=form.elements.media_video?.files?.[0]||null;
 
-      if(images.length>10)
-        throw new Error("Maximum 10 additional images can be selected.");
+      if(images.length>10)throw new Error("Maximum 10 additional images can be selected.");
 
       for(const file of images){
-        if(file.size>5*1024*1024)
-          throw new Error(`${file.name} is larger than 5 MB.`);
-
+        if(file.size>5*1024*1024)throw new Error(`${file.name} is larger than 5 MB.`);
         if(!["image/jpeg","image/png","image/webp"].includes(file.type))
           throw new Error("Additional images must be JPG, PNG or WebP.");
       }
 
       if(video){
-        if(video.size>50*1024*1024)
-          throw new Error("Video must be 50 MB or smaller.");
-
+        if(video.size>50*1024*1024)throw new Error("Video must be 50 MB or smaller.");
         if(!["video/mp4","video/webm"].includes(video.type))
           throw new Error("Video must be MP4 or WebM.");
       }
@@ -937,38 +898,23 @@
       let image_url=String(fd.get("image_url")||"").trim()||null;
 
       if(mainFile&&mainFile.size){
-        if(mainFile.size>5*1024*1024)
-          throw new Error("Main image must be 5 MB or smaller.");
-
+        if(mainFile.size>5*1024*1024)throw new Error("Main image must be 5 MB or smaller.");
         if(!["image/jpeg","image/png","image/webp"].includes(mainFile.type))
           throw new Error("Main image must be JPG, PNG or WebP.");
 
         mainImagePath=`${crypto.randomUUID()}-${slug(mainFile.name)}`;
-
-        const upload=await sb.storage.from("product-images")
-          .upload(mainImagePath,mainFile,{
-            upsert:false,
-            contentType:mainFile.type
-          });
-
+        const upload=await sb.storage.from("product-images").upload(mainImagePath,mainFile,{
+          upsert:false,contentType:mainFile.type
+        });
         if(upload.error)throw upload.error;
 
         image_path=mainImagePath;
         image_url=null;
-
       }else if(id){
-
-        const old=await sb.from("products")
-          .select("image_path,image_url")
-          .eq("id",id)
-          .single();
-
+        const old=await sb.from("products").select("image_path,image_url").eq("id",id).single();
         if(old.error)throw old.error;
-
         image_path=old.data.image_path||null;
-
-        if(!image_url)
-          image_url=old.data.image_url||null;
+        if(!image_url)image_url=old.data.image_url||null;
       }
 
       const payload={
@@ -983,6 +929,7 @@
         description:String(fd.get("description")||"").trim()||null,
         image_path,
         image_url,
+        sizes,
         is_featured:fd.get("is_featured")==="on",
         is_published:fd.get("is_published")==="on",
         updated_at:new Date().toISOString()
@@ -999,8 +946,7 @@
       form.elements.id.value=id;
 
       const existing=await sb.from("product_media")
-        .select("id,media_type")
-        .eq("product_id",id);
+        .select("id,media_type").eq("product_id",id);
 
       if(existing.error)throw existing.error;
 
@@ -1010,7 +956,6 @@
 
       if(oldImages+images.length>10)
         throw new Error("Maximum 10 additional images allowed. Delete old images first.");
-
       if(video&&oldVideos>=1)
         throw new Error("A video already exists. Delete the old video first.");
 
@@ -1021,51 +966,31 @@
       try{
         for(const file of images){
           const path=`${id}/${crypto.randomUUID()}-${slug(file.name)}`;
-
-          const upload=await sb.storage.from("product-media")
-            .upload(path,file,{
-              upsert:false,
-              contentType:file.type
-            });
-
+          const upload=await sb.storage.from("product-media").upload(path,file,{
+            upsert:false,contentType:file.type
+          });
           if(upload.error)throw upload.error;
-
           uploadedPaths.push(path);
 
-          const url=sb.storage.from("product-media")
-            .getPublicUrl(path).data.publicUrl;
-
+          const url=sb.storage.from("product-media").getPublicUrl(path).data.publicUrl;
           rows.push({
-            product_id:id,
-            media_type:"image",
-            storage_path:path,
-            media_url:url,
-            sort_order:order++
+            product_id:id,media_type:"image",
+            storage_path:path,media_url:url,sort_order:order++
           });
         }
 
         if(video){
           const path=`${id}/${crypto.randomUUID()}-${slug(video.name)}`;
-
-          const upload=await sb.storage.from("product-media")
-            .upload(path,video,{
-              upsert:false,
-              contentType:video.type
-            });
-
+          const upload=await sb.storage.from("product-media").upload(path,video,{
+            upsert:false,contentType:video.type
+          });
           if(upload.error)throw upload.error;
-
           uploadedPaths.push(path);
 
-          const url=sb.storage.from("product-media")
-            .getPublicUrl(path).data.publicUrl;
-
+          const url=sb.storage.from("product-media").getPublicUrl(path).data.publicUrl;
           rows.push({
-            product_id:id,
-            media_type:"video",
-            storage_path:path,
-            media_url:url,
-            sort_order:order
+            product_id:id,media_type:"video",
+            storage_path:path,media_url:url,sort_order:order
           });
         }
 
@@ -1073,40 +998,26 @@
           const {error}=await sb.from("product_media").insert(rows);
           if(error)throw error;
         }
-
       }catch(mediaError){
-
-        if(uploadedPaths.length){
+        if(uploadedPaths.length)
           await sb.storage.from("product-media").remove(uploadedPaths);
-        }
-
-        throw new Error(
-          "Product saved, but media upload failed: "+mediaError.message
-        );
+        throw new Error("Product saved, but media upload failed: "+mediaError.message);
       }
 
-      if(form.elements.media_images)
-        form.elements.media_images.value="";
-
-      if(form.elements.media_video)
-        form.elements.media_video.value="";
+      if(form.elements.media_images)form.elements.media_images.value="";
+      if(form.elements.media_video)form.elements.media_video.value="";
 
       await loadProductMedia(id);
-
       form.classList.add("hidden");
       toast("Product and media saved successfully.");
-
       await loadAdminProducts();
       await loadStats();
 
     }catch(err){
-
-      if(!productSaved&&mainImagePath){
+      if(!productSaved&&mainImagePath)
         await sb.storage.from("product-images").remove([mainImagePath]);
-      }
 
       toast(err.message||"Could not save product.");
-
     }finally{
       btn.disabled=false;
     }
@@ -1127,10 +1038,7 @@
 
     $$(".tab-btn").forEach(b=>b.addEventListener("click",()=>{
       $$(".tab-btn").forEach(x=>x.classList.toggle("active",x===b));
-
-      $$(".admin-tab").forEach(x=>
-        x.classList.toggle("hidden",x.id!==`tab-${b.dataset.tab}`)
-      );
+      $$(".admin-tab").forEach(x=>x.classList.toggle("hidden",x.id!==`tab-${b.dataset.tab}`));
 
       if(b.dataset.tab==="orders")loadOrders();
       if(b.dataset.tab==="categories")loadCategories();
@@ -1151,10 +1059,8 @@
 
     $("#product-form").addEventListener("submit",saveProduct);
     $("#category-form").addEventListener("submit",saveCategory);
-
     $("#coupon-form")?.addEventListener("submit",saveCoupon);
     $("#cancel-coupon")?.addEventListener("click",resetCouponForm);
-
     $("#refresh-orders").onclick=loadOrders;
 
     await loadProductMedia(null);
@@ -1169,12 +1075,10 @@
       sb.from("products").select("id",{count:"exact",head:true}),
       sb.from("orders").select("id",{count:"exact",head:true}),
       sb.from("orders").select("total")
-        .eq("order_status","delivered")
-        .eq("payment_status","collected")
+        .eq("order_status","delivered").eq("payment_status","collected")
     ]);
 
-    const pending=await sb.from("orders")
-      .select("id",{count:"exact",head:true})
+    const pending=await sb.from("orders").select("id",{count:"exact",head:true})
       .in("order_status",["pending_confirmation","confirmed","processing"]);
 
     const revenue=(d.data||[]).reduce((n,x)=>n+Number(x.total||0),0);
@@ -1191,7 +1095,7 @@
     const body=$("#admin-products");
 
     const {data,error}=await sb.from("products")
-      .select("id,title,price,sale_price,stock,is_published,image_url,image_path,description,short_description,sku,category_id,is_featured")
+      .select("id,title,price,sale_price,stock,is_published,image_url,image_path,description,short_description,sku,category_id,is_featured,sizes")
       .order("created_at",{ascending:false});
 
     if(error){
@@ -1226,34 +1130,26 @@
       if(edit){
         const p=data.find(x=>x.id===edit.dataset.edit);
         const f=$("#product-form");
-
         if(!p||!f)return;
 
         Object.entries(p).forEach(([k,v])=>{
           if(f.elements[k]){
-            if(f.elements[k].type==="checkbox")
-              f.elements[k].checked=!!v;
-            else
-              f.elements[k].value=v??"";
+            if(f.elements[k].type==="checkbox")f.elements[k].checked=!!v;
+            else if(k==="sizes")f.elements[k].value=normalizeSizes(v).join(", ");
+            else f.elements[k].value=v??"";
           }
         });
 
+        if(f.elements.sizes)f.elements.sizes.value=normalizeSizes(p.sizes).join(", ");
         f.elements.image.value="";
         f.classList.remove("hidden");
-
         await loadProductMedia(p.id);
 
-        window.scrollTo({
-          top:f.offsetTop-80,
-          behavior:"smooth"
-        });
+        window.scrollTo({top:f.offsetTop-80,behavior:"smooth"});
       }
 
       if(del&&confirm("Delete this product? Historical order items remain saved.")){
-        const {error}=await sb.from("products")
-          .delete()
-          .eq("id",del.dataset.delete);
-
+        const {error}=await sb.from("products").delete().eq("id",del.dataset.delete);
         if(error){
           toast("Could not delete product. It may be referenced by an order.");
         }else{
@@ -1266,9 +1162,7 @@
   }
 
   async function loadCategories(){
-    const {data,error}=await sb.from("categories")
-      .select("id,name")
-      .order("name");
+    const {data,error}=await sb.from("categories").select("id,name").order("name");
 
     if(error){
       const list=$("#category-admin-list");
@@ -1277,14 +1171,12 @@
     }
 
     const sel=$("#product-category");
-
     if(sel){
       sel.innerHTML='<option value="">Uncategorized</option>'+
         (data||[]).map(c=>`<option value="${esc(c.id)}">${esc(c.name)}</option>`).join("");
     }
 
     const list=$("#category-admin-list");
-
     if(list){
       list.innerHTML=data.length
         ? data.map(c=>`
@@ -1298,15 +1190,10 @@
 
     if(list)list.onclick=async e=>{
       const b=e.target.closest("[data-cat-delete]");
-
       if(b&&confirm("Delete this category? Products will need a different category.")){
-        const {error}=await sb.from("categories")
-          .delete()
-          .eq("id",b.dataset.catDelete);
-
-        if(error){
-          toast("Could not delete category. It may still be assigned to products.");
-        }else{
+        const {error}=await sb.from("categories").delete().eq("id",b.dataset.catDelete);
+        if(error)toast("Could not delete category. It may still be assigned to products.");
+        else{
           toast("Category deleted.");
           loadCategories();
         }
@@ -1316,16 +1203,12 @@
 
   async function saveCategory(e){
     e.preventDefault();
-
     const name=String(new FormData(e.currentTarget).get("name")).trim();
     if(!name)return;
 
-    const {error}=await sb.from("categories")
-      .insert({name,slug:slug(name)});
-
-    if(error){
-      toast("Could not add category. It may already exist.");
-    }else{
+    const {error}=await sb.from("categories").insert({name,slug:slug(name)});
+    if(error)toast("Could not add category. It may already exist.");
+    else{
       e.currentTarget.reset();
       toast("Category added.");
       loadCategories();
@@ -1348,9 +1231,7 @@
     if(!body)return;
 
     const {data,error}=await sb.from("orders")
-      .select("*")
-      .order("created_at",{ascending:false})
-      .limit(200);
+      .select("*").order("created_at",{ascending:false}).limit(200);
 
     if(error){
       body.innerHTML='<tr><td colspan="7">Could not load orders. Check database policies.</td></tr>';
@@ -1359,10 +1240,7 @@
 
     body.innerHTML=data.length?data.map(o=>`
       <tr>
-        <td>
-          <strong>${esc(o.order_number)}</strong><br>
-          <small>${new Date(o.created_at).toLocaleString()}</small>
-        </td>
+        <td><strong>${esc(o.order_number)}</strong><br><small>${new Date(o.created_at).toLocaleString()}</small></td>
         <td>${esc(o.customer_name)}<br><small>${esc(o.customer_phone)}</small></td>
         <td>${money(o.total)}</td>
         <td>${esc(o.payment_status)}</td>
@@ -1385,10 +1263,7 @@
       const old=data.find(o=>o.id===s.dataset.statusId);
       const note=prompt("Optional note for status history:")||null;
 
-      const {error}=await sb.from("orders")
-        .update({order_status:s.value})
-        .eq("id",s.dataset.statusId);
-
+      const {error}=await sb.from("orders").update({order_status:s.value}).eq("id",s.dataset.statusId);
       if(error){
         toast("Could not update order.");
         return;
@@ -1401,10 +1276,8 @@
         note
       });
 
-      if(he)
-        toast("Status updated, but history insert failed. Check SQL setup.");
-      else
-        toast("Order status updated.");
+      if(he)toast("Status updated, but history insert failed. Check SQL setup.");
+      else toast("Order status updated.");
 
       loadOrders();
       loadStats();
@@ -1418,12 +1291,10 @@
       if(!o)return;
 
       const {data:items,error:ie}=await sb.from("order_items")
-        .select("*")
-        .eq("order_id",o.id);
+        .select("*").eq("order_id",o.id);
 
       const detail=$("#order-detail");
       if(!detail)return;
-
       detail.classList.remove("hidden");
 
       detail.innerHTML=`
@@ -1442,7 +1313,6 @@
             </p>
             <p>${esc(o.delivery_address)}<br>${esc(o.city)}, ${esc(o.province)}</p>
           </div>
-
           <div>
             <h3>Payment and totals</h3>
             <p>
@@ -1456,35 +1326,33 @@
         </div>
 
         <h3>Items</h3>
-
         ${ie?"Could not load items.":(items||[]).map(i=>`
           <div class="order-item-row">
-            <span>${esc(i.product_title)} × ${i.quantity}</span>
+            <span>
+              ${esc(i.product_title)}
+              ${i.selected_size?`(Size: ${esc(i.selected_size)})`:""}
+              × ${i.quantity}
+            </span>
             <strong>${money(i.line_total)}</strong>
           </div>
         `).join("")}
 
         <p class="small muted">Delivery instructions: ${esc(o.delivery_instructions||"None")}</p>
-
         <button id="mark-collected" class="btn btn-dark btn-small" data-id="${esc(o.id)}">
           Mark COD collected
         </button>
       `;
 
-      $("#close-order-detail").onclick=()=>{
-        detail.classList.add("hidden");
-      };
+      $("#close-order-detail").onclick=()=>detail.classList.add("hidden");
 
       $("#mark-collected").onclick=async()=>{
         if(!confirm("Confirm that COD payment has been collected?"))return;
 
         const {error}=await sb.from("orders")
-          .update({payment_status:"collected"})
-          .eq("id",o.id);
+          .update({payment_status:"collected"}).eq("id",o.id);
 
-        if(error){
-          toast("Could not update payment status.");
-        }else{
+        if(error)toast("Could not update payment status.");
+        else{
           toast("Payment collection recorded.");
           loadOrders();
           loadStats();

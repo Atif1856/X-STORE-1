@@ -19,6 +19,84 @@
   <link rel="stylesheet" href="logo.css?v=2">
   <link rel="stylesheet" href="theme.css?v=1">
 
+  <style>
+    /* Announcement Bar */
+
+    .announcement-bar {
+      display: none;
+      width: 100%;
+      min-height: 42px;
+      padding: 10px 42px;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      position: relative;
+      z-index: 1000;
+      overflow: hidden;
+      box-sizing: border-box;
+    }
+
+    .announcement-bar.is-visible {
+      display: flex;
+    }
+
+    .announcement-content {
+      display: inline-block;
+      max-width: 100%;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: .5px;
+      text-decoration: none;
+      line-height: 1.5;
+      opacity: 1;
+      transition: opacity .3s ease, transform .3s ease;
+    }
+
+    .announcement-content:hover {
+      text-decoration: underline;
+    }
+
+    .announcement-content.is-changing {
+      opacity: 0;
+      transform: translateY(5px);
+    }
+
+    .announcement-close {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      border: 0;
+      background: transparent;
+      color: inherit;
+      font-size: 21px;
+      line-height: 1;
+      cursor: pointer;
+      padding: 5px;
+      opacity: .75;
+    }
+
+    .announcement-close:hover {
+      opacity: 1;
+    }
+
+    @media(max-width:600px) {
+      .announcement-bar {
+        min-height: 38px;
+        padding: 9px 35px 9px 10px;
+      }
+
+      .announcement-content {
+        font-size: 11px;
+        letter-spacing: .2px;
+      }
+
+      .announcement-close {
+        right: 7px;
+      }
+    }
+  </style>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script defer src="config.js"></script>
   <script defer src="app.js"></script>
@@ -26,6 +104,22 @@
 </head>
 
 <body>
+
+<!-- Announcement Bar -->
+<div id="announcement-bar" class="announcement-bar">
+  <a
+    id="announcement-content"
+    class="announcement-content"
+    href="#"
+  ></a>
+
+  <button
+    id="announcement-close"
+    class="announcement-close"
+    type="button"
+    aria-label="Close announcement"
+  >×</button>
+</div>
 
 <header class="site-header">
 
@@ -121,6 +215,171 @@
 </footer>
 
 <div id="toast" class="toast" role="status"></div>
+
+<script>
+(function () {
+  const bar = document.getElementById("announcement-bar");
+  const content = document.getElementById("announcement-content");
+  const closeButton = document.getElementById("announcement-close");
+
+  if (!bar || !content || !closeButton) return;
+
+  let offers = [];
+  let currentIndex = 0;
+  let slideTimer = null;
+
+  function hideBar() {
+    bar.classList.remove("is-visible");
+
+    if (slideTimer) {
+      clearInterval(slideTimer);
+      slideTimer = null;
+    }
+  }
+
+  function validLink(value) {
+    const link = String(value || "").trim();
+
+    if (!link) return "";
+
+    if (
+      link.startsWith("/") ||
+      link.startsWith("./") ||
+      link.startsWith("../") ||
+      link.startsWith("#")
+    ) {
+      return link;
+    }
+
+    try {
+      const url = new URL(link, window.location.origin);
+
+      if (url.protocol === "http:" || url.protocol === "https:") {
+        return url.href;
+      }
+    } catch (error) {
+      return "";
+    }
+
+    return "";
+  }
+
+  function displayOffer(index) {
+    if (!offers.length) return;
+
+    currentIndex = index % offers.length;
+
+    const offer = offers[currentIndex];
+
+    content.classList.add("is-changing");
+
+    setTimeout(() => {
+      content.textContent = offer.text;
+
+      const link = validLink(offer.url);
+
+      if (link) {
+        content.href = link;
+        content.style.pointerEvents = "auto";
+        content.setAttribute("aria-label", offer.text);
+      } else {
+        content.removeAttribute("href");
+        content.style.pointerEvents = "none";
+      }
+
+      content.classList.remove("is-changing");
+    }, 300);
+  }
+
+  function startSlider(interval) {
+    if (slideTimer) {
+      clearInterval(slideTimer);
+    }
+
+    if (offers.length <= 1) return;
+
+    slideTimer = setInterval(() => {
+      displayOffer(currentIndex + 1);
+    }, interval * 1000);
+  }
+
+  async function loadAnnouncements() {
+    const config = window.XSTORE_CONFIG;
+
+    if (
+      !config ||
+      !config.SUPABASE_URL ||
+      !config.SUPABASE_ANON_KEY ||
+      !window.supabase
+    ) {
+      return;
+    }
+
+    try {
+      const sb = window.supabase.createClient(
+        config.SUPABASE_URL,
+        config.SUPABASE_ANON_KEY
+      );
+
+      const { data, error } = await sb
+        .from("site_settings")
+        .select("setting_value")
+        .eq("setting_key", "announcement_bar")
+        .maybeSingle();
+
+      if (error) throw error;
+
+      const settings = data?.setting_value;
+
+      if (!settings || settings.enabled !== true) {
+        hideBar();
+        return;
+      }
+
+      offers = Array.isArray(settings.offers)
+        ? settings.offers.filter(offer =>
+            offer &&
+            typeof offer.text === "string" &&
+            offer.text.trim()
+          )
+        : [];
+
+      if (!offers.length) {
+        hideBar();
+        return;
+      }
+
+      bar.style.backgroundColor =
+        /^#[0-9a-f]{6}$/i.test(settings.background || "")
+          ? settings.background
+          : "#171717";
+
+      bar.style.color =
+        /^#[0-9a-f]{6}$/i.test(settings.color || "")
+          ? settings.color
+          : "#f1f0e8";
+
+      const interval = Math.min(
+        15,
+        Math.max(2, Number(settings.interval) || 4)
+      );
+
+      bar.classList.add("is-visible");
+
+      displayOffer(0);
+      startSlider(interval);
+
+    } catch (error) {
+      console.error("Announcement bar could not load:", error);
+      hideBar();
+    }
+  }
+
+  closeButton.addEventListener("click", hideBar);
+
+  loadAnnouncements();
+})();
+</script>
 
 </body>
 </html>

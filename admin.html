@@ -74,7 +74,7 @@
 <button class="tab-btn" data-tab="coupons">Coupons</button>
 <button class="tab-btn" data-tab="analytics">Sales Analytics</button>
 <button class="tab-btn" data-tab="reviews">Customer Reviews</button>
-<button class="tab-btn" data-tab="support">Support Chats</button>
+<button class="tab-btn" data-tab="support">Support Requests</button>
 </div>
 
 <section id="tab-products" class="admin-tab">
@@ -223,10 +223,9 @@
 
 
 <section id="tab-support" class="admin-tab hidden">
-<div class="admin-section-heading"><h2>Customer Support Chats</h2><button id="refresh-support-chats" class="btn btn-outline">Refresh</button></div>
-<div class="support-admin-layout"><div id="support-chat-list" class="panel support-chat-list">Loading conversations…</div>
-<div id="support-chat-reply-panel" class="panel support-chat-reply-panel" hidden><div id="support-chat-thread" class="support-chat-thread"></div>
-<form id="support-chat-reply-form"><textarea id="support-chat-reply" rows="3" maxlength="1500" placeholder="Write your reply..." required></textarea><div class="support-chat-actions"><button class="btn btn-dark" type="submit">Send Reply</button><button class="btn btn-outline" id="support-chat-resolve" type="button">Mark Resolved</button></div></form></div></div></section>
+<div class="admin-section-heading"><div><h2>Customer Support Requests</h2><p class="muted">Contact customers on WhatsApp. Response target: within 12 hours.</p></div><button id="refresh-support-chats" class="btn btn-outline">Refresh Requests</button></div>
+<div class="support-admin-layout"><div id="support-chat-list" class="panel support-chat-list">Loading requests…</div>
+<div id="support-chat-reply-panel" class="panel support-chat-reply-panel" hidden><div id="support-chat-thread" class="support-chat-thread"></div><div class="support-chat-actions"><button id="support-whatsapp-reply" class="btn btn-dark" type="button">Reply on WhatsApp</button><button class="btn btn-outline" id="support-chat-resolve" type="button">Mark Resolved</button></div></div></div></section>
 
 </main>
 

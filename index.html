@@ -92,6 +92,16 @@
         right: 7px;
       }
     }
+  
+    .about-blog{max-width:1120px;margin:0 auto;padding:clamp(55px,8vw,100px) 22px;text-align:left}
+    .about-blog h2{max-width:760px;margin:12px 0 24px;font-size:clamp(2.2rem,5vw,4rem);line-height:1.08}
+    .about-blog>p:not(.eyebrow){max-width:850px;color:var(--muted);line-height:1.85;margin:0 0 17px}
+    .about-blog-points{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:34px 0}
+    .about-blog-points article{padding:22px;border:1px solid var(--border);background:rgba(255,255,255,.55);display:grid;gap:10px}
+    .about-blog-points strong{font-size:.78rem;letter-spacing:1px;color:var(--gold)}
+    .about-blog-points span{font-size:.92rem;color:var(--muted);line-height:1.6}
+    @media(max-width:700px){.about-blog-points{grid-template-columns:1fr}}
+
   </style>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -164,10 +174,18 @@
     </div>
   </section>
 
-  <section id="about" class="editorial">
-    <p class="eyebrow">THE X STORE STANDARD</p>
-    <h2>Simple choices.<br><em>Thoughtful shopping.</em></h2>
-    <p>Browse at your own pace, order securely, and choose Cash on Delivery at checkout.</p>
+  <section id="about" class="editorial about-blog">
+    <p class="eyebrow">ABOUT X STORE · OUR STORY</p>
+    <h2>Good shopping starts with <em>simplicity.</em></h2>
+    <p>X STORE is an online shopping destination created to make discovering and ordering everyday products feel clear and convenient. We believe an online store should be easy to explore, straightforward to use, and helpful at every step.</p>
+    <p>That is why we focus on presenting product information clearly, keeping the shopping journey simple, and offering Cash on Delivery at checkout where available. Whether you are browsing for something useful or comparing options, our aim is to help you make your choice with confidence.</p>
+    <p>We are building X STORE around three simple principles: a considered product collection, a convenient ordering experience, and helpful customer support when you need it. Your experience matters, and we keep working to make each visit easier.</p>
+    <div class="about-blog-points">
+      <article><strong>01 / DISCOVER</strong><span>Explore products in one easy-to-browse collection.</span></article>
+      <article><strong>02 / ORDER</strong><span>Review your selection and place your order through a simple checkout.</span></article>
+      <article><strong>03 / GET SUPPORT</strong><span>Reach out to our support team if you have a question about your order.</span></article>
+    </div>
+    <a class="btn btn-dark" href="about.html">Read more about X STORE</a>
   </section>
 
   <section id="contact" class="contact-strip">
@@ -193,7 +211,6 @@
     <a href="track-order.html">Track Order</a>
     <a href="admin-login.html">Admin</a>
   </div>
-<a href="about.html">About Us</a>
 </footer>
 
 <div id="toast" class="toast" role="status"></div>

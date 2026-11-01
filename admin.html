@@ -14,6 +14,7 @@
 <script defer src="delivery-admin.js?v=1"></script>
 <script defer src="banner-admin.js"></script>
   <script defer src="popup-admin.js"></script>
+  <script defer src="support-admin.js?v=1"></script>
 <style>
 .analytics-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:16px;margin:20px 0}
 .analytics-card,.analytics-panel,.review-card{background:var(--panel,#fff);border:1px solid rgba(0,0,0,.1);border-radius:14px;padding:18px}
@@ -32,6 +33,7 @@
 .status-approved{color:#16834b}
 .status-rejected{color:#b3261e}
 @media(max-width:600px){.admin-tabs{overflow-x:auto;white-space:nowrap}.analytics-card strong{font-size:21px}}
+.support-admin-layout{display:grid;grid-template-columns:minmax(220px,.8fr) minmax(280px,1.5fr);gap:14px}.support-chat-list{display:flex;flex-direction:column;gap:8px;max-height:650px;overflow:auto}.support-thread{text-align:left;padding:12px;border:1px solid #ddd5c7;background:#fff;border-radius:9px;cursor:pointer}.support-thread.active{border-color:#b69a6a;background:#f4efe4}.support-chat-thread{height:430px;overflow:auto;display:flex;flex-direction:column;gap:10px;padding:8px}.support-bubble{max-width:85%;padding:10px 12px;border-radius:12px;background:#eee9df;overflow-wrap:anywhere}.support-bubble.admin{align-self:flex-end;background:#1b1b1b;color:#fff}.support-bubble p{margin:5px 0}.support-chat-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}@media(max-width:700px){.support-admin-layout{grid-template-columns:1fr}.support-chat-thread{height:340px}}
 </style>
 </head>
 <body>
@@ -72,6 +74,7 @@
 <button class="tab-btn" data-tab="coupons">Coupons</button>
 <button class="tab-btn" data-tab="analytics">Sales Analytics</button>
 <button class="tab-btn" data-tab="reviews">Customer Reviews</button>
+<button class="tab-btn" data-tab="support">Support Chats</button>
 </div>
 
 <section id="tab-products" class="admin-tab">
@@ -217,6 +220,13 @@
 <div class="panel">Reviews will appear here once review-management functionality is connected.</div>
 </div>
 </section>
+
+
+<section id="tab-support" class="admin-tab hidden">
+<div class="admin-section-heading"><h2>Customer Support Chats</h2><button id="refresh-support-chats" class="btn btn-outline">Refresh</button></div>
+<div class="support-admin-layout"><div id="support-chat-list" class="panel support-chat-list">Loading conversations…</div>
+<div id="support-chat-reply-panel" class="panel support-chat-reply-panel" hidden><div id="support-chat-thread" class="support-chat-thread"></div>
+<form id="support-chat-reply-form"><textarea id="support-chat-reply" rows="3" maxlength="1500" placeholder="Write your reply..." required></textarea><div class="support-chat-actions"><button class="btn btn-dark" type="submit">Send Reply</button><button class="btn btn-outline" id="support-chat-resolve" type="button">Mark Resolved</button></div></form></div></div></section>
 
 </main>
 

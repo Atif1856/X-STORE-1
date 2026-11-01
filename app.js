@@ -1246,7 +1246,7 @@
       .select("*").order("created_at",{ascending:false}).limit(200);
 
     if(error){
-      body.innerHTML='<tr><td colspan="7">Could not load orders. Check database policies.</td></tr>';
+      body.innerHTML='<tr><td colspan="8">Could not load orders. Check database policies.</td></tr>';
       return;
     }
 
@@ -1254,6 +1254,7 @@
       <tr>
         <td><strong>${esc(o.order_number)}</strong><br><small>${new Date(o.created_at).toLocaleString()}</small></td>
         <td>${esc(o.customer_name)}<br><small>${esc(o.customer_phone)}</small></td>
+        <td>${o.coupon_code ? `<span class="status-pill" style="background:#e8f4eb;color:#176b38">COUPON USED</span><br><strong>${esc(o.coupon_code)}</strong><br><small>Discount: ${money(o.discount)}</small>` : '<span class="status-pill" style="background:#f0eee9;color:#625d54">NO COUPON</span>'}</td>
         <td>${money(o.total)}</td>
         <td>${esc(o.payment_status)}</td>
         <td><span class="status-pill">${esc(statusLabels[o.order_status]||o.order_status)}</span></td>

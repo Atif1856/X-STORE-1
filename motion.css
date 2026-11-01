@@ -1,11 +1,38 @@
-/* X STORE — smooth, lightweight motion */
-html{scroll-behavior:smooth}
-body{animation:xsPageIn .45s ease both}
-@keyframes xsPageIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
-.xs-reveal{opacity:0;transform:translateY(22px);transition:opacity .65s ease,transform .65s cubic-bezier(.2,.7,.2,1)}
-.xs-reveal.xs-visible{opacity:1;transform:none}
-.xs-reveal-delay-1{transition-delay:.08s}.xs-reveal-delay-2{transition-delay:.16s}.xs-reveal-delay-3{transition-delay:.24s}
-a,button,.btn,.product-card,.value-card{transition:transform .25s ease,box-shadow .25s ease,background-color .25s ease,color .25s ease}
-a:focus-visible,button:focus-visible{outline:2px solid #b69a6a;outline-offset:4px}
-@media(hover:hover){.product-card:hover,.value-card:hover{transform:translateY(-5px);box-shadow:0 16px 34px rgba(25,22,17,.10)}}
-@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}body{animation:none}.xs-reveal{opacity:1;transform:none;transition:none}*,*::before,*::after{scroll-behavior:auto!important;transition-duration:.01ms!important;animation-duration:.01ms!important;animation-iteration-count:1!important}}
+/* X STORE — premium motion system v2 */
+:root{--xs-motion-ease:cubic-bezier(.22,.72,.18,1);--xs-motion-gold:#b69a6a}
+html{scroll-behavior:smooth;scroll-padding-top:96px}
+body{opacity:0;animation:xs-page-enter .65s var(--xs-motion-ease) forwards}
+@keyframes xs-page-enter{from{opacity:0;transform:translate3d(0,10px,0)}to{opacity:1;transform:translate3d(0,0,0)}}
+#xs-progress{position:fixed;inset:0 auto auto 0;width:0;height:3px;background:linear-gradient(90deg,#927447,#e2c995,#927447);z-index:9999;box-shadow:0 1px 8px rgba(182,154,106,.35);pointer-events:none}
+.xs-reveal{opacity:0;transform:translate3d(0,26px,0);transition:opacity .72s var(--xs-motion-ease),transform .72s var(--xs-motion-ease);will-change:opacity,transform}
+.xs-reveal.xs-visible{opacity:1;transform:translate3d(0,0,0);will-change:auto}
+.xs-reveal-left{transform:translate3d(-24px,0,0)}
+.xs-reveal-right{transform:translate3d(24px,0,0)}
+.xs-reveal-scale{transform:scale(.965)}
+.xs-reveal-left.xs-visible,.xs-reveal-right.xs-visible{transform:translate3d(0,0,0)}
+.xs-reveal-scale.xs-visible{transform:scale(1)}
+.xs-delay-1{transition-delay:.08s}.xs-delay-2{transition-delay:.16s}.xs-delay-3{transition-delay:.24s}.xs-delay-4{transition-delay:.32s}
+.site-header{transition:background .3s ease,box-shadow .3s ease,border-color .3s ease}
+.site-header.xs-scrolled{background:rgba(247,245,239,.96);box-shadow:0 10px 32px rgba(17,17,17,.09);border-color:rgba(182,154,106,.22)}
+a,button,.btn,.chip,.product-card,.value-card,.panel{transition:transform .28s var(--xs-motion-ease),box-shadow .28s ease,border-color .28s ease,background-color .28s ease,color .28s ease}
+a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:2px solid var(--xs-motion-gold);outline-offset:4px}
+@media(hover:hover){
+ .product-card:hover,.value-card:hover{transform:translateY(-6px);box-shadow:0 18px 38px rgba(25,22,17,.11)}
+ .btn:hover{transform:translateY(-2px)}
+ .site-header nav a{position:relative}
+ .site-header nav a:after{content:"";position:absolute;left:0;right:100%;bottom:-7px;height:1px;background:var(--xs-motion-gold);transition:right .28s ease}
+ .site-header nav a:hover:after{right:0}
+}
+#xs-back-top{position:fixed;right:22px;bottom:22px;z-index:1000;width:44px;height:44px;border:1px solid rgba(182,154,106,.45);border-radius:50%;background:rgba(20,20,20,.9);color:#f4ead6;box-shadow:0 8px 24px rgba(0,0,0,.18);opacity:0;visibility:hidden;transform:translateY(10px);transition:opacity .25s ease,visibility .25s ease,transform .25s ease;cursor:pointer}
+#xs-back-top.xs-show{opacity:1;visibility:visible;transform:translateY(0)}
+.xs-page-leaving{opacity:0;transform:translateY(-5px);transition:opacity .16s ease,transform .16s ease}
+img{transition:opacity .25s ease}
+img[loading="lazy"]{background:rgba(182,154,106,.06)}
+@media(prefers-reduced-motion:reduce){
+ html{scroll-behavior:auto}
+ body{opacity:1;animation:none}
+ .xs-reveal,.xs-reveal.xs-visible{opacity:1;transform:none;transition:none;will-change:auto}
+ #xs-progress{display:none}
+ #xs-back-top{transition:none}
+ *,*::before,*::after{scroll-behavior:auto!important;transition-duration:.01ms!important;animation-duration:.01ms!important;animation-iteration-count:1!important}
+}

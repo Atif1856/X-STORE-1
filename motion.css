@@ -1,0 +1,11 @@
+/* X STORE — smooth, lightweight motion */
+html{scroll-behavior:smooth}
+body{animation:xsPageIn .45s ease both}
+@keyframes xsPageIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.xs-reveal{opacity:0;transform:translateY(22px);transition:opacity .65s ease,transform .65s cubic-bezier(.2,.7,.2,1)}
+.xs-reveal.xs-visible{opacity:1;transform:none}
+.xs-reveal-delay-1{transition-delay:.08s}.xs-reveal-delay-2{transition-delay:.16s}.xs-reveal-delay-3{transition-delay:.24s}
+a,button,.btn,.product-card,.value-card{transition:transform .25s ease,box-shadow .25s ease,background-color .25s ease,color .25s ease}
+a:focus-visible,button:focus-visible{outline:2px solid #b69a6a;outline-offset:4px}
+@media(hover:hover){.product-card:hover,.value-card:hover{transform:translateY(-5px);box-shadow:0 16px 34px rgba(25,22,17,.10)}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}body{animation:none}.xs-reveal{opacity:1;transform:none;transition:none}*,*::before,*::after{scroll-behavior:auto!important;transition-duration:.01ms!important;animation-duration:.01ms!important;animation-iteration-count:1!important}}

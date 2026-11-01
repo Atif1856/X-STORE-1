@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#f4f0e8">
+  <title>About Us | X STORE</title>
+  <meta name="description" content="Discover the story, values and shopping experience behind X STORE.">
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="theme.css?v=1">
+  <style>
+    .about-hero{padding:clamp(65px,10vw,125px) clamp(22px,9vw,130px);background:linear-gradient(135deg,#171717,#29251f);color:#f8f5ee;position:relative;overflow:hidden}
+    .about-hero:after{content:"X";position:absolute;right:7%;top:50%;transform:translateY(-55%);font:clamp(15rem,35vw,32rem)/1 'Playfair Display',serif;color:rgba(214,193,154,.075);pointer-events:none}
+    .about-hero .eyebrow{color:#d6c19a}.about-hero h1{max-width:760px;position:relative;z-index:1}.about-hero h1 em{color:#d6c19a}.about-hero p:not(.eyebrow){max-width:590px;color:#d5d0c6;font-size:1.05rem;position:relative;z-index:1}
+    .about-wrap{max-width:1120px;margin:auto;padding:75px 22px 100px}
+    .about-intro{display:grid;grid-template-columns:1fr 1.2fr;gap:55px;align-items:start;padding-bottom:65px;border-bottom:1px solid var(--border)}
+    .about-intro h2,.values-heading h2{font-size:clamp(2rem,4vw,3.2rem)}
+    .about-copy{color:var(--muted);font-size:1rem}.about-copy p:last-child{margin-bottom:0}
+    .values{padding-top:65px}.values-heading{max-width:650px;margin-bottom:30px}.values-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+    .value-card{padding:27px 24px;background:rgba(255,255,255,.58);border:1px solid var(--border);box-shadow:0 12px 30px rgba(17,17,17,.045);min-height:190px}
+    .value-number{font:italic 1.5rem 'Playfair Display',serif;color:var(--gold);margin-bottom:20px}.value-card h3{font-size:1.08rem;margin-bottom:10px}.value-card p{font-size:.9rem;color:var(--muted);margin:0}
+    .about-cta{margin-top:65px;padding:38px;background:linear-gradient(135deg,#e8e0d2,#f6f3ec);display:flex;align-items:center;justify-content:space-between;gap:25px}.about-cta h2{font-size:clamp(1.7rem,3vw,2.5rem);margin:0}.about-cta p{color:var(--muted);margin:8px 0 0}
+    .simple-footer{padding:25px clamp(20px,6vw,80px);display:flex;justify-content:space-between;align-items:center;gap:18px;border-top:1px solid var(--border);font-size:.85rem;color:var(--muted)}
+    @media(max-width:760px){.about-intro{grid-template-columns:1fr;gap:15px}.values-grid{grid-template-columns:1fr}.value-card{min-height:0}.about-cta{align-items:flex-start;flex-direction:column}.simple-footer{flex-direction:column;align-items:flex-start}}
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="index.html"><img class="brand-logo" src="xstore-logo.png" alt="X STORE logo" width="287" height="240"><span class="brand-word">STORE</span></a>
+    <nav aria-label="Main navigation">
+      <a href="index.html#shop">Shop</a>
+      <a href="about.html" aria-current="page">About</a>
+      <a href="index.html#contact">Contact</a>
+      <a href="track-order.html">Track Order</a>
+    </nav>
+    <a class="cart-link" href="cart.html">Cart</a>
+  </header>
+
+  <main>
+    <section class="about-hero">
+      <p class="eyebrow">GET TO KNOW X STORE</p>
+      <h1>Shopping should feel <em>simple.</em></h1>
+      <p>We believe finding useful products should be straightforward. X STORE brings a considered collection and a clear, convenient way to shop together in one place.</p>
+    </section>
+
+    <div class="about-wrap">
+      <section class="about-intro">
+        <div>
+          <p class="eyebrow">OUR STORY</p>
+          <h2>A store built around <em>everyday needs.</em></h2>
+        </div>
+        <div class="about-copy">
+          <p>X STORE is an online shopping destination focused on making product discovery and ordering easier. Our aim is to keep the experience clear, accessible and convenient, so customers can explore the collection and make informed choices.</p>
+          <p>From browsing products to placing an order, we want every step to feel simple. We continue to build the store around practical service, useful information and a thoughtful shopping experience.</p>
+        </div>
+      </section>
+
+      <section class="values">
+        <div class="values-heading">
+          <p class="eyebrow">WHAT MATTERS TO US</p>
+          <h2>The X STORE <em>approach.</em></h2>
+          <p class="about-copy">The principles behind the experience we want every customer to have.</p>
+        </div>
+        <div class="values-grid">
+          <article class="value-card"><div class="value-number">01</div><h3>Thoughtful Selection</h3><p>We aim to present a considered range of products for different everyday needs.</p></article>
+          <article class="value-card"><div class="value-number">02</div><h3>Convenient Shopping</h3><p>Browse online, review product details and place your order through a simple checkout.</p></article>
+          <article class="value-card"><div class="value-number">03</div><h3>Helpful Support</h3><p>Have a question about an order or product? Our support channel is there to help.</p></article>
+        </div>
+      </section>
+
+      <section class="about-cta">
+        <div><p class="eyebrow">READY TO EXPLORE?</p><h2>Find something for your everyday.</h2><p>Take a look through the X STORE collection.</p></div>
+        <a class="btn btn-dark" href="index.html#shop">Explore the collection</a>
+      </section>
+    </div>
+  </main>
+
+  <footer class="simple-footer">
+    <a class="brand" href="index.html"><img class="brand-logo" src="xstore-logo.png" alt="X STORE logo" width="287" height="240"><span class="brand-word">STORE</span></a>
+    <span>© <span id="year"></span> X STORE. All rights reserved.</span>
+    <a href="policy.html">Store Policies</a>
+  </footer>
+  <script>document.getElementById('year').textContent=new Date().getFullYear();</script>
+</body>
+</html>

@@ -1476,3 +1476,9 @@ footer{background:#F0F0E6;border-top-color:#DADBCF}
 @media(prefers-reduced-motion:reduce){
   body::before,body::after{animation:none!important}
 }
+
+
+/* X STORE logo — Deep Olive monochrome */
+.brand-logo{
+  filter:brightness(0) saturate(100%) invert(18%) sepia(13%) saturate(1000%) hue-rotate(85deg) brightness(92%) contrast(92%);
+}

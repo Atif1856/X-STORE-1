@@ -6,12 +6,12 @@ const $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
 const progress=document.createElement("div");progress.id="xs-progress";document.body.appendChild(progress);
 const topButton=document.createElement("button");topButton.id="xs-back-top";topButton.type="button";topButton.setAttribute("aria-label","Back to top");topButton.innerHTML="↑";document.body.appendChild(topButton);
 
-/* Subtle full-screen dot field that reacts to pointer movement. */
-if(!reduce){
+/* Full-screen dot field; remains visible even with reduced-motion enabled. */
+{
  const canvas=document.createElement("canvas");
  canvas.id="xs-dot-field";
  canvas.setAttribute("aria-hidden","true");
- Object.assign(canvas.style,{position:"fixed",inset:"0",width:"100%",height:"100%",pointerEvents:"none",zIndex:"8",opacity:".52"});
+ Object.assign(canvas.style,{position:"fixed",inset:"0",width:"100%",height:"100%",pointerEvents:"none",zIndex:"999",opacity:"1"});
  document.body.appendChild(canvas);
  const ctx=canvas.getContext("2d");
  let w=0,h=0,dpr=1,points=[],raf=0;
@@ -20,7 +20,7 @@ if(!reduce){
   dpr=Math.min(window.devicePixelRatio||1,1.5);w=window.innerWidth;h=window.innerHeight;
   canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);
   ctx.setTransform(dpr,0,0,dpr,0,0);
-  const gap=w<600?27:32;points=[];
+  const gap=w<600?24:28;points=[];
   for(let y=gap/2;y<h+gap;y+=gap)for(let x=gap/2;x<w+gap;x+=gap)
    points.push({x,y,ox:x,oy:y,vx:0,vy:0});
  }
@@ -29,14 +29,14 @@ if(!reduce){
   ctx.clearRect(0,0,w,h);
   for(const p of points){
    const dx=p.x-pointer.x,dy=p.y-pointer.y,dist=Math.hypot(dx,dy)||1;
-   const radius=112,force=Math.max(0,1-dist/radius);
-   const push=force*13;
+   const radius=145,force=Math.max(0,1-dist/radius);
+   const push=force*24;
    const tx=p.ox+(dx/dist)*push,ty=p.oy+(dy/dist)*push;
    p.vx+=(tx-p.x)*.13;p.vy+=(ty-p.y)*.13;
    p.vx*=.78;p.vy*=.78;p.x+=p.vx;p.y+=p.vy;
-   const alpha=.16+force*.42;
-   ctx.beginPath();ctx.arc(p.x,p.y,1.05+force*.35,0,Math.PI*2);
-   ctx.fillStyle="rgba(38,53,43,"+alpha+")";ctx.fill();
+   const alpha=.28+force*.62;
+   ctx.beginPath();ctx.arc(p.x,p.y,1.45+force*.8,0,Math.PI*2);
+   ctx.fillStyle="rgba(38,53,43,"+Math.min(alpha,.95)+")";ctx.fill();
   }
   raf=requestAnimationFrame(draw);
  }

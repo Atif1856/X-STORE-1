@@ -47,4 +47,23 @@
     if(tab&&!loaded)load();
   });
   $("#refresh-returns")?.addEventListener("click",load);
-})();
+
+  // Cancellation request queue
+  const cancelNames={pending_review:"Pending review",approved:"Approved",rejected:"Rejected",cancelled:"Cancelled"};
+  async function loadCancellations(){
+    const body=$("#admin-cancellations-list");if(!body)return;
+    body.innerHTML='<tr><td colspan="7">Loading cancellation requests…</td></tr>';
+    const {data,error}=await db.from("cancellation_requests").select("*").order("created_at",{ascending:false});
+    if(error){body.innerHTML='<tr><td colspan="7">Could not load. Run cancellations-setup.sql and check admin access.</td></tr>';const m=$("#cancellations-message");if(m){m.textContent=error.message;m.classList.remove("hidden");}return;}
+    body.innerHTML=data.length?data.map(r=>'<tr><td><strong>'+esc(r.request_number)+'</strong></td><td>'+esc(r.order_id)+'</td><td>'+esc(r.customer_name)+'<br><small>'+esc(r.customer_phone)+'</small></td><td>'+esc(r.reason||"—")+'</td><td>'+esc(cancelNames[r.status]||r.status)+'</td><td>'+esc(new Date(r.created_at).toLocaleDateString())+'</td><td><select data-cancel-status="'+esc(r.id)+'">'+["pending_review","approved","rejected","cancelled"].map(s=>'<option value="'+s+'" '+(s===r.status?"selected":"")+'>'+cancelNames[s]+'</option>').join("")+'</select><button class="btn btn-outline btn-small" data-cancel-save="'+esc(r.id)+'">Save</button></td></tr>').join(""):'<tr><td colspan="7">No cancellation requests yet.</td></tr>';
+    body.querySelectorAll("[data-cancel-save]").forEach(btn=>btn.onclick=async()=>{
+      const id=btn.dataset.cancelSave,status=body.querySelector('[data-cancel-status="'+id+'"]').value;
+      const note=prompt("Optional admin note:")||null;btn.disabled=true;
+      const {error}=await db.from("cancellation_requests").update({status,admin_note:note,reviewed_at:["approved","rejected"].includes(status)?new Date().toISOString():null,updated_at:new Date().toISOString()}).eq("id",id);
+      const m=$("#cancellations-message");if(m){m.textContent=error?"Update failed: "+error.message:"Request updated. Approved requests still require a separate order-status update.";m.classList.remove("hidden");}
+      await loadCancellations();
+    });
+  }
+  document.addEventListener("click",e=>{if(e.target.closest('[data-tab="returns"]'))loadCancellations();});
+  $("#refresh-cancellations")?.addEventListener("click",loadCancellations);
+\n})();

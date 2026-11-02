@@ -184,7 +184,7 @@ footer a:hover{
   min-width:23px;
   height:23px;
   border-radius:50%;
-  background:linear-gradient(145deg,#A6A17A,#A88B5D);
+  background:linear-gradient(145deg,#A6A17A,#26352B);
   color:#171717;
   font-size:.75rem;
   margin-left:5px;
@@ -1386,8 +1386,8 @@ footer{background:#f1f0e8;border-top:1px solid #dedbd1}
 :root{
   --ivory:#F5F3EA;
   --ink:#26352B;
-  --gold:#A6A17A;
-  --gold-light:#D5D1B8;
+  --gold:#26352B;
+  --gold-light:#A6A17A;
   --white:#FFFFFF;
   --border:#DADBCF;
   --muted:#6F756A;

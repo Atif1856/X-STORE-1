@@ -91,7 +91,7 @@ if(!reduce&&"IntersectionObserver"in window){
  const seen=new WeakSet();
  const observer=new IntersectionObserver(entries=>entries.forEach(entry=>{if(entry.isIntersecting){entry.target.classList.add("xs-visible");observer.unobserve(entry.target);}}),{threshold:.08,rootMargin:"0px 0px -45px 0px"});
  function reveal(root=document){
-  $$(selector,root).forEach((el,i)=>{
+  $$$(selector,root).forEach((el,i)=>{
    if(seen.has(el)||el.closest("header,footer"))return;
    seen.add(el);el.classList.add("xs-reveal");
    if(el.matches(".hero-copy"))el.classList.add("xs-reveal-left");
@@ -105,7 +105,7 @@ if(!reduce&&"IntersectionObserver"in window){
  const grid=$("#product-grid");
  if(grid)new MutationObserver(()=>reveal(grid)).observe(grid,{childList:true,subtree:true});
 }else{
- $$(".xs-reveal").forEach(el=>el.classList.add("xs-visible"));
+ $$$(".xs-reveal").forEach(el=>el.classList.add("xs-visible"));
 }
 
 /* Selected premium motions: image reveal, refined page transitions, counters, cart feedback. */
@@ -144,7 +144,7 @@ if(!reduce){
   requestAnimationFrame(tick);
  }));
  function watchCounters(root=document){
-  $(".stat-card strong,.analytics-card strong",root).forEach(el=>{
+  $$(".stat-card strong,.analytics-card strong",root).forEach(el=>{
    if(el.dataset.xsCounterObserved)return;
    el.dataset.xsCounterObserved="1";counterObserver.observe(el);
   });
@@ -202,7 +202,7 @@ document.head.appendChild(motionStyle);
 if(!reduce && window.matchMedia("(pointer:fine)").matches){
  const cards=new WeakSet();
  function enableTilt(root=document){
-  $(".product-card",root).forEach(card=>{
+  $$(".product-card",root).forEach(card=>{
    if(cards.has(card))return;cards.add(card);
    card.addEventListener("pointermove",e=>{
     const r=card.getBoundingClientRect(),x=(e.clientX-r.left)/r.width,y=(e.clientY-r.top)/r.height;
@@ -234,7 +234,7 @@ if(!reduce){
   "@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}";
  document.head.appendChild(advancedStyle);
  // Stagger reveal for groups while preserving the existing observer.
- $(".product-card,.value-card").forEach((el,i)=>{el.style.transitionDelay=(Math.min(i%6,5)*55)+"ms";});
+ $$(".product-card,.value-card").forEach((el,i)=>{el.style.transitionDelay=(Math.min(i%6,5)*55)+"ms";});
  // Animate the selected product image toward the cart when Add to Cart is pressed.
  document.addEventListener("click",event=>{
   const button=event.target.closest(".add-cart");

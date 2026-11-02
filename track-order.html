@@ -86,10 +86,22 @@
       margin-top: 15px;
     }
 
-    .tracking-muted {
-      color: #666;
-      font-size: 13px;
-    }
+    .tracking-muted { color:#687267; font-size:13px; }
+    .tracking-status{background:#F4F5ED;border-left:4px solid #26352B;color:#26352B}
+    .tracking-status h2{margin:7px 0;color:#26352B}
+    .tracking-history{position:relative;gap:0;margin:18px 0 0 7px;padding-left:25px}
+    .history-item{position:relative;background:transparent;border:0;border-left:2px solid #D5DCCF;border-radius:0;padding:0 0 23px 18px;margin:0;color:#26352B}
+    .history-item:last-child{border-left-color:transparent;padding-bottom:0}
+    .history-item:before{content:"";position:absolute;left:-7px;top:2px;width:10px;height:10px;border-radius:50%;background:#A6A17A;border:2px solid #EEF0E7;box-shadow:0 0 0 1px #A6A17A}
+    .history-item.is-current:before{background:#26352B;box-shadow:0 0 0 4px rgba(166,161,122,.25)}
+    .history-item strong{display:block;font-size:14px}
+    .history-item p{margin:5px 0;color:#687267;font-size:13px;line-height:1.5}
+    .history-item small{color:#7B8277;font-size:12px}
+    .tracking-progress{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px;margin:22px 0 26px}
+    .tracking-progress-step{height:4px;border-radius:5px;background:#DDE1D6}
+    .tracking-progress-step.done{background:#526B50}
+    .tracking-progress-label{grid-column:1/-1;display:flex;justify-content:space-between;gap:8px;color:#788174;font-size:10px;margin-top:5px}
+    @media(max-width:480px){.tracking-card{padding:20px}.tracking-progress-label{font-size:9px}}
   </style>
 </head>
 
@@ -246,6 +258,16 @@
         ? data.history
         : [];
 
+      const progressSteps=["pending_confirmation","confirmed","processing","shipped","out_for_delivery","delivered"];
+      const terminal=["cancelled","returned"].includes(data.status);
+      const currentStep=progressSteps.indexOf(data.status);
+      const progressBox=document.getElementById("tracking-progress");
+      const completedCount=terminal?0:(currentStep<0?0:currentStep+1);
+      progressBox.innerHTML=terminal
+        ? `<div class="tracking-progress-label"><span>${esc(statusNames[data.status]||data.status)}</span><span>Order closed</span></div>`
+        : progressSteps.slice(0,5).map((step,index)=>`<span class="tracking-progress-step ${index<Math.min(completedCount,5)?"done":""}"></span>`).join("")+
+          `<div class="tracking-progress-label"><span>Placed</span><span>Confirmed</span><span>Processing</span><span>Shipped</span><span>Delivered</span></div>`;
+
       resultBox.innerHTML = `
         <div class="tracking-status">
           <p class="tracking-muted">ORDER NUMBER</p>
@@ -262,23 +284,17 @@
           </p>
         </div>
 
-        <h3>Order Progress</h3>
-
+        <h3>Order Timeline</h3>
+        <div class="tracking-progress" id="tracking-progress"></div>
         <div class="tracking-history">
-          ${history.length ? history.map(item => `
-            <div class="history-item">
-              <strong>
-                ${esc(statusNames[item.status] || item.status)}
-              </strong>
-
+          ${history.length ? [...history].sort((a,b)=>new Date(a.date)-new Date(b.date)).map((item,index,items) => `
+            <div class="history-item ${index===items.length-1?"is-current":""}">
+              <strong>${esc(statusNames[item.status] || item.status)}</strong>
               ${item.note ? `<p>${esc(item.note)}</p>` : ""}
-
               <small>${esc(formatDate(item.date))}</small>
             </div>
           `).join("") : `
-            <p class="tracking-muted">
-              No status history is available yet.
-            </p>
+            <p class="tracking-muted">Order timeline will appear when a status update is recorded.</p>
           `}
         </div>
       `;

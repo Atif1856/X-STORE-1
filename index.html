@@ -128,11 +128,11 @@
   </a>
 
   <nav>
-    <a href="#shop">Shop</a>
-    <a href="about.html">About</a>
-    <a href="#contact">Contact</a>
+    <a href="#shop">Shop All</a>
+    <a href="#new-arrivals">New Arrivals</a>
+    <a href="#categories">Categories</a>
+    <a href="about.html">Our Story</a>
     <a href="track-order.html">Track Order</a>
-    <a href="returns.html">Returns</a>
   </nav>
 
   <a class="cart-link" href="cart.html">
@@ -143,10 +143,11 @@
 <main>
   <section class="hero">
     <div class="hero-copy">
-      <p class="eyebrow">A BETTER WAY TO SHOP</p>
-      <h1>Everyday essentials.<br><em>Elevated.</em></h1>
-      <p>Discover products picked for your everyday life, with simple shopping and Cash on Delivery.</p>
-      <a class="btn btn-dark" href="#shop">Explore the collection</a>
+      <p class="eyebrow">THE X STORE EDIT · EVERYDAY, REFINED</p>
+      <h1>Find your next<br><em>everyday favourite.</em></h1>
+      <p>Thoughtfully selected finds, a smoother way to shop, and convenient Cash on Delivery across Pakistan.</p>
+      <div class="hero-actions"><a class="btn btn-dark" href="#shop">Shop the collection <span aria-hidden="true">↗</span></a><a class="hero-text-link" href="#categories">Explore categories</a></div>
+      <div class="hero-assurance"><span>✦ Curated finds</span><span>✦ Easy ordering</span><span>✦ Cash on Delivery</span></div>
     </div>
 
     <div class="hero-art" id="home-banner">
@@ -156,18 +157,28 @@
     </div>
   </section>
 
-  <section id="shop" class="section">
-    <div class="section-heading">
+  <section id="categories" class="category-editorial">
+  <div class="editorial-head"><div><p class="eyebrow">BROWSE YOUR WAY</p><h2>Explore the edit</h2></div><a class="text-button" href="#shop">View all products ↗</a></div>
+  <div class="category-editorial-grid">
+    <a class="category-tile category-tile-large" href="#shop"><span class="category-kicker">THE COLLECTION</span><strong>Shop all</strong><span>Discover every find ↗</span></a>
+    <a class="category-tile category-tile-light" href="#shop"><span class="category-kicker">JUST IN</span><strong>New arrivals</strong><span>Fresh finds, recently added ↗</span></a>
+    <a class="category-tile category-tile-dark" href="#shop"><span class="category-kicker">CURATED FOR YOU</span><strong>Featured picks</strong><span>Explore selected favourites ↗</span></a>
+  </div>
+</section>
+
+<section id="shop" class="section">
+    <div class="section-heading" id="new-arrivals">
       <div>
-        <p class="eyebrow">THE COLLECTION</p>
-        <h2>Shop products</h2>
+        <p class="eyebrow">DISCOVER SOMETHING GOOD</p>
+        <h2>Shop the collection</h2>
       </div>
 
       <input id="search" class="search-input"
-        placeholder="Search products..."
+        placeholder="Search the collection..."
         aria-label="Search products">
     </div>
 
+    <div class="collection-toolbar"><p>Find the pieces that fit your everyday.</p><span>CURATED FINDS · X STORE</span></div>
     <div id="category-list" class="chips"></div>
 
     <div id="product-grid" class="product-grid">
@@ -175,9 +186,11 @@
     </div>
   </section>
 
+  <section class="promise-strip"><div><span>01</span><strong>Easy discovery</strong><p>Browse a considered collection in one place.</p></div><div><span>02</span><strong>Simple checkout</strong><p>A clear and convenient way to place your order.</p></div><div><span>03</span><strong>Here to help</strong><p>Support for questions about your shopping experience.</p></div></section>
+
   <section id="about" class="editorial about-blog">
-    <p class="eyebrow">ABOUT X STORE · OUR STORY</p>
-    <h2>Good shopping starts with <em>simplicity.</em></h2>
+    <p class="eyebrow">A LITTLE ABOUT US</p>
+    <h2>Everyday shopping,<br><em>made considered.</em></h2>
     <p>X STORE is an online shopping destination created to make discovering and ordering everyday products feel clear and convenient. We believe an online store should be easy to explore, straightforward to use, and helpful at every step.</p>
     <p>That is why we focus on presenting product information clearly, keeping the shopping journey simple, and offering Cash on Delivery at checkout where available. Whether you are browsing for something useful or comparing options, our aim is to help you make your choice with confidence.</p>
     <p>We are building X STORE around three simple principles: a considered product collection, a convenient ordering experience, and helpful customer support when you need it. Your experience matters, and we keep working to make each visit easier.</p>
@@ -208,7 +221,9 @@
   <p>© <span id="year"></span> X STORE. All rights reserved.</p>
 
   <div>
+    <a href="about.html">Our Story</a>
     <a href="policy.html">Policies</a>
+    <a href="returns.html">Returns</a>
     <a href="track-order.html">Track Order</a>
     <a href="admin-login.html">Admin</a>
   </div>

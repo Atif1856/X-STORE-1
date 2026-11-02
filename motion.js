@@ -47,6 +47,32 @@ const topButton=document.createElement("button");topButton.id="xs-back-top";topB
  document.addEventListener("visibilitychange",()=>{if(document.hidden){cancelAnimationFrame(raf);raf=0;}else if(!raf){draw();}});
 }
 
+
+/* X STORE branded intro: once per browser tab session. */
+let showIntro=false;
+try{showIntro=!sessionStorage.getItem("xs-intro-seen");if(showIntro)sessionStorage.setItem("xs-intro-seen","1");}catch(e){showIntro=false;}
+if(showIntro){
+ const intro=document.createElement("div");intro.id="xs-brand-intro";
+ Object.assign(intro.style,{position:"fixed",inset:"0",zIndex:"10000",display:"grid",placeItems:"center",background:"#EEF0E7",opacity:"1",transition:"opacity .55s ease",pointerEvents:"auto"});
+ intro.innerHTML='<div style="display:grid;justify-items:center;gap:14px;color:#26352B;font:600 12px/1.4 Arial,sans-serif;letter-spacing:.32em"><img src="xstore-mark.svg" alt="" style="width:74px;height:74px;object-fit:contain;animation:xsLogoPop .8s cubic-bezier(.2,.8,.2,1) both"><span>X STORE</span><i style="display:block;width:46px;height:2px;background:#A6A17A;transform-origin:left;animation:xsLoaderLine 1.15s ease both"></i></div>';
+ document.body.appendChild(intro);
+ const introStyle=document.createElement("style");
+ introStyle.textContent="@keyframes xsLogoPop{from{opacity:0;transform:translateY(12px) scale(.88)}to{opacity:1;transform:translateY(0) scale(1)}}@keyframes xsLoaderLine{from{transform:scaleX(0)}to{transform:scaleX(1)}}";
+ document.head.appendChild(introStyle);
+ window.setTimeout(()=>{intro.style.opacity="0";window.setTimeout(()=>intro.remove(),600);},1100);
+}
+
+/* Moving announcement ribbon on the home page. */
+if(location.pathname.endsWith("/")||location.pathname.endsWith("/index.html")){
+ const ribbon=document.createElement("div");ribbon.className="xs-marquee";ribbon.setAttribute("aria-label","X STORE shopping highlights");
+ ribbon.innerHTML='<div class="xs-marquee-track"><span>CURATED FINDS</span><b>✦</b><span>CASH ON DELIVERY</span><b>✦</b><span>SHOP THE EVERYDAY</span><b>✦</b><span>CURATED FINDS</span><b>✦</b><span>CASH ON DELIVERY</span><b>✦</b><span>SHOP THE EVERYDAY</span><b>✦</b></div>';
+ const headerEl=$(".site-header");
+ if(headerEl)headerEl.insertAdjacentElement("afterend",ribbon);
+ const ribbonStyle=document.createElement("style");
+ ribbonStyle.textContent=".xs-marquee{position:relative;z-index:4;overflow:hidden;background:#26352B;color:#EEF0E7;padding:12px 0;border-bottom:1px solid rgba(166,161,122,.35)}.xs-marquee-track{display:flex;align-items:center;justify-content:space-around;gap:34px;width:max-content;min-width:200%;white-space:nowrap;animation:xsMarqueeRun 32s linear infinite;font:600 10px/1.4 Arial,sans-serif;letter-spacing:.2em}.xs-marquee-track b{color:#A6A17A;font-size:13px}@keyframes xsMarqueeRun{to{transform:translateX(-50%)}}@media(prefers-reduced-motion:reduce){.xs-marquee-track{animation:none;min-width:100%;justify-content:center;flex-wrap:wrap;white-space:normal}}";
+ document.head.appendChild(ribbonStyle);
+}
+
 const header=$(".site-header");
 let scrollTick=false;
 function updateScrollUI(){

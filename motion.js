@@ -49,8 +49,7 @@ const topButton=document.createElement("button");topButton.id="xs-back-top";topB
 
 
 /* X STORE branded intro: once per browser tab session. */
-let showIntro=false;
-try{showIntro=!sessionStorage.getItem("xs-intro-seen");if(showIntro)sessionStorage.setItem("xs-intro-seen","1");}catch(e){showIntro=false;}
+let showIntro=!reduce;
 if(showIntro){
  const intro=document.createElement("div");intro.id="xs-brand-intro";
  Object.assign(intro.style,{position:"fixed",inset:"0",zIndex:"10000",display:"grid",placeItems:"center",background:"#EEF0E7",opacity:"1",transition:"opacity .55s ease",pointerEvents:"auto"});
@@ -184,6 +183,16 @@ const ambient=document.createElement("div");
 ambient.id="xs-ambient-wash";
 Object.assign(ambient.style,{position:"fixed",inset:"-20%",pointerEvents:"none",zIndex:"1",opacity:".32",background:"radial-gradient(ellipse at 18% 22%, rgba(166,161,122,.17), transparent 42%), radial-gradient(ellipse at 82% 76%, rgba(82,107,80,.12), transparent 44%)",animation:reduce?"none":"xsAmbientDrift 24s ease-in-out infinite alternate"});
 document.body.appendChild(ambient);
+const revealCSS=document.createElement("style");
+revealCSS.textContent=
+ ".xs-reveal{opacity:0;transform:translate3d(0,28px,0);transition:opacity .75s ease,transform .75s cubic-bezier(.2,.7,.2,1)}"+
+ ".xs-reveal-left{transform:translate3d(-34px,0,0)}"+
+ ".xs-reveal-right{transform:translate3d(34px,0,0)}"+
+ ".xs-reveal-scale{transform:translate3d(0,18px,0) scale(.97)}"+
+ ".xs-reveal.xs-visible{opacity:1;transform:translate3d(0,0,0) scale(1)}"+
+ ".xs-delay-1{transition-delay:.08s}.xs-delay-2{transition-delay:.16s}.xs-delay-3{transition-delay:.24s}.xs-delay-4{transition-delay:.32s}"+
+ "@media(prefers-reduced-motion:reduce){.xs-reveal{opacity:1!important;transform:none!important;transition:none!important}}";
+document.head.appendChild(revealCSS);
 const motionStyle=document.createElement("style");
 motionStyle.textContent="@keyframes xsAmbientDrift{from{transform:translate3d(-1.5%, -1%, 0) scale(1)}to{transform:translate3d(1.5%, 1%, 0) scale(1.04)}}"+
 "@media(pointer:fine) and (prefers-reduced-motion:no-preference){.product-card{transform-style:preserve-3d;will-change:transform;transition:transform .22s ease,box-shadow .22s ease}.product-card.xs-tilt-active{box-shadow:0 18px 38px rgba(38,53,43,.13)}.product-card.xs-tilt-active .product-image img{transform:translateZ(18px) scale(1.045)}}"+

@@ -82,6 +82,52 @@ if(!reduce&&"IntersectionObserver"in window){
 }else{
  $$(".xs-reveal").forEach(el=>el.classList.add("xs-visible"));
 }
+
+/* Premium interactions: cursor spotlight, 3D product tilt and ambient olive wash. */
+if(!reduce && window.matchMedia("(pointer:fine)").matches){
+ const spotlight=document.createElement("div");
+ spotlight.id="xs-cursor-spotlight";
+ Object.assign(spotlight.style,{position:"fixed",inset:"0",pointerEvents:"none",zIndex:"2",opacity:"0",background:"radial-gradient(380px circle at var(--mx,50%) var(--my,50%), rgba(166,161,122,.16), transparent 72%)",transition:"opacity .35s ease"});
+ document.body.appendChild(spotlight);
+ window.addEventListener("pointermove",e=>{
+  spotlight.style.setProperty("--mx",e.clientX+"px");
+  spotlight.style.setProperty("--my",e.clientY+"px");
+  spotlight.style.opacity="1";
+ },{passive:true});
+ document.addEventListener("pointerleave",()=>{spotlight.style.opacity="0";});
+}
+
+/* Ambient olive light — very slow movement, no layout or click impact. */
+const ambient=document.createElement("div");
+ambient.id="xs-ambient-wash";
+Object.assign(ambient.style,{position:"fixed",inset:"-20%",pointerEvents:"none",zIndex:"1",opacity:".32",background:"radial-gradient(ellipse at 18% 22%, rgba(166,161,122,.17), transparent 42%), radial-gradient(ellipse at 82% 76%, rgba(82,107,80,.12), transparent 44%)",animation:reduce?"none":"xsAmbientDrift 24s ease-in-out infinite alternate"});
+document.body.appendChild(ambient);
+const motionStyle=document.createElement("style");
+motionStyle.textContent="@keyframes xsAmbientDrift{from{transform:translate3d(-1.5%, -1%, 0) scale(1)}to{transform:translate3d(1.5%, 1%, 0) scale(1.04)}}"+
+"@media(pointer:fine) and (prefers-reduced-motion:no-preference){.product-card{transform-style:preserve-3d;will-change:transform;transition:transform .22s ease,box-shadow .22s ease}.product-card.xs-tilt-active{box-shadow:0 18px 38px rgba(38,53,43,.13)}.product-card.xs-tilt-active .product-image img{transform:translateZ(18px) scale(1.045)}}"+
+"@media(prefers-reduced-motion:reduce){#xs-ambient-wash{animation:none!important}}";
+document.head.appendChild(motionStyle);
+
+if(!reduce && window.matchMedia("(pointer:fine)").matches){
+ const cards=new WeakSet();
+ function enableTilt(root=document){
+  $(".product-card",root).forEach(card=>{
+   if(cards.has(card))return;cards.add(card);
+   card.addEventListener("pointermove",e=>{
+    const r=card.getBoundingClientRect(),x=(e.clientX-r.left)/r.width,y=(e.clientY-r.top)/r.height;
+    card.classList.add("xs-tilt-active");
+    card.style.transform="perspective(900px) rotateX("+((.5-y)*5)+"deg) rotateY("+((x-.5)*6)+"deg) translateY(-3px)";
+   },{passive:true});
+   const reset=()=>{card.classList.remove("xs-tilt-active");card.style.transform="";};
+   card.addEventListener("pointerleave",reset,{passive:true});
+   card.addEventListener("pointercancel",reset,{passive:true});
+  });
+ }
+ enableTilt();
+ const productGrid=$("#product-grid");
+ if(productGrid)new MutationObserver(()=>enableTilt(productGrid)).observe(productGrid,{childList:true,subtree:true});
+}
+
 document.addEventListener("click",event=>{
  const a=event.target.closest("a[href]");
  if(!a||reduce||event.defaultPrevented||event.button!==0||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey||a.target==="_blank"||a.hasAttribute("download"))return;

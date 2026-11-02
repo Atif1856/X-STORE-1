@@ -44,7 +44,7 @@ const topButton=document.createElement("button");topButton.id="xs-back-top";topB
  window.addEventListener("pointerleave",()=>{pointer.tx=-1000;pointer.ty=-1000;},{passive:true});
  window.addEventListener("resize",resize,{passive:true});
  resize();draw();
- document.addEventListener("visibilitychange",()=>{if(document.hidden){cancelAnimationFrame(raf);}else if(!raf)draw();});
+ document.addEventListener("visibilitychange",()=>{if(document.hidden){cancelAnimationFrame(raf);raf=0;}else if(!raf){draw();}});
 }
 
 const header=$(".site-header");

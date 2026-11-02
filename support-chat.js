@@ -3,9 +3,9 @@
 const cfg=window.XSTORE_CONFIG||{};if(!window.supabase||!cfg.SUPABASE_URL||!cfg.SUPABASE_ANON_KEY)return;
 const sb=window.supabase.createClient(cfg.SUPABASE_URL,cfg.SUPABASE_ANON_KEY);
 const style=document.createElement("style");style.textContent=`
-#xs-support-launch{position:fixed;right:22px;bottom:22px;z-index:10020;background:#26352B;color:#F5F3EA;border:1px solid #A6A17A;border-radius:30px;padding:13px 19px;font-weight:700;box-shadow:0 8px 24px rgba(38,53,43,.2)}
+#xs-support-launch{position:fixed;left:22px;right:auto;bottom:22px;z-index:10020;background:#26352B;color:#F5F3EA;border:1px solid #A6A17A;border-radius:30px;padding:13px 19px;font-weight:700;box-shadow:0 8px 24px rgba(38,53,43,.2)}
 /* Keep the floating support control clear of the header cart area. */
-#xs-support-box{position:fixed;right:20px;bottom:82px;z-index:10021;width:min(390px,calc(100vw - 28px));background:#f7f5ef;border:1px solid #c9b58e;border-radius:16px;box-shadow:0 18px 55px #0003;display:none;overflow:hidden;color:#171717;font:14px Arial}
+#xs-support-box{position:fixed;left:20px;right:auto;bottom:82px;z-index:10021;width:min(390px,calc(100vw - 28px));background:#f7f5ef;border:1px solid #c9b58e;border-radius:16px;box-shadow:0 18px 55px #0003;display:none;overflow:hidden;color:#171717;font:14px Arial}
 #xs-support-box.open{display:block}#xs-support-head{background:#171717;color:#f1e5cb;padding:15px;display:flex;justify-content:space-between;align-items:center}#xs-support-head button{background:none;border:0;color:inherit;font-size:22px;cursor:pointer}
 #xs-support-form{padding:15px;display:grid;gap:10px}#xs-support-form p{margin:0 0 3px}#xs-support-form input,#xs-support-form textarea{box-sizing:border-box;width:100%;padding:12px;border:1px solid #d6cbb8;border-radius:9px;background:#fff;font:inherit}#xs-support-form textarea{min-height:110px;resize:vertical}
 #xs-support-submit{padding:13px;background:#171717;color:white;border:0;border-radius:9px;font-weight:700;cursor:pointer}#xs-support-result{padding:0 15px 16px;line-height:1.5;color:#28613e}#xs-support-error{color:#a32626;overflow-wrap:anywhere}`;document.head.appendChild(style);

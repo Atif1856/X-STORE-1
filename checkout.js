@@ -112,6 +112,46 @@
     return data;
   }
 
+  async function loadCouponSuggestions() {
+    const wrap = $("#xs-coupon-suggestions");
+    if (!wrap) return;
+
+    try {
+      const { data, error } = await sb.rpc("suggest_coupons", {
+        p_items: cartItems()
+      });
+      if (error) throw error;
+
+      const suggestions = Array.isArray(data) ? data : [];
+      if (!suggestions.length) {
+        wrap.innerHTML = '<p class="coupon-suggest-empty">No eligible coupons for this cart right now.</p>';
+        return;
+      }
+
+      suggestions.sort((a, b) => Number(b.discount || 0) - Number(a.discount || 0));
+      wrap.innerHTML = '<p class="coupon-suggest-title">Available for your cart</p>' +
+        suggestions.map(c =>
+          '<button type="button" class="coupon-suggestion" data-coupon="' + esc(c.code) + '">' +
+            '<span><strong>' + esc(c.code) + '</strong><small>' +
+            (c.discount_type === "percent"
+              ? esc(c.discount_value) + '% off'
+              : money(c.discount_value) + ' off') +
+            '</small></span><b>Save ' + money(c.discount) + '</b>' +
+          '</button>'
+        ).join("");
+
+      wrap.querySelectorAll("[data-coupon]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          if (appliedCode) return;
+          couponInput.value = btn.dataset.coupon || "";
+          applyCoupon();
+        });
+      });
+    } catch (err) {
+      wrap.innerHTML = '<p class="coupon-suggest-empty">Coupon suggestions are temporarily unavailable.</p>';
+    }
+  }
+
   async function refreshQuote() {
     if (quoteBusy || busy) return;
 
@@ -127,6 +167,7 @@
         true
       );
       submitBtn.disabled = false;
+      if (!appliedCode) await loadCouponSuggestions();
     } catch (err) {
       $("#xs-totals").innerHTML = "";
       $("#xs-total-inline").textContent = "";
@@ -162,6 +203,8 @@
       }
 
       renderQuote(q);
+      const suggestions = $("#xs-coupon-suggestions");
+      if (suggestions) suggestions.innerHTML = "";
     } catch (err) {
       setCouponMsg(err.message || "Could not check the coupon.", false);
     } finally {
@@ -176,6 +219,7 @@
     couponBtn.textContent = "Apply";
     setCouponMsg("", true);
     await refreshQuote();
+    await loadCouponSuggestions();
   }
 
   function showSuccess(order) {

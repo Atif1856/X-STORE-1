@@ -109,6 +109,62 @@ if(!reduce&&"IntersectionObserver"in window){
  $$(".xs-reveal").forEach(el=>el.classList.add("xs-visible"));
 }
 
+/* Selected premium motions: image reveal, refined page transitions, counters, cart feedback. */
+if(!reduce){
+ const motionCSS=document.createElement("style");
+ motionCSS.textContent=
+  ".product-card .product-image img{clip-path:inset(7% 5% 7% 5%);opacity:.72;transition:clip-path .85s cubic-bezier(.22,.72,.18,1),opacity .7s ease,transform .35s ease}"+
+  ".product-card.xs-visible .product-image img{clip-path:inset(0);opacity:1}"+
+  "body:after{content:'';position:fixed;inset:0;z-index:10001;pointer-events:none;background:#26352B;transform:scaleY(0);transform-origin:bottom;transition:transform .32s cubic-bezier(.7,0,.2,1)}"+
+  "body.xs-page-leaving:after{transform:scaleY(1);transform-origin:bottom}"+
+  ".cart-link .count.xs-cart-bump{animation:xsCartBump .48s cubic-bezier(.2,.8,.2,1)}"+
+  "@keyframes xsCartBump{0%{transform:scale(1)}35%{transform:scale(1.42) rotate(-7deg)}70%{transform:scale(.9)}100%{transform:scale(1)}}"+
+  ".xs-counter-running{font-variant-numeric:tabular-nums}";
+ document.head.appendChild(motionCSS);
+
+ // Animate numeric dashboard values when they enter view, including values loaded later.
+ const counterSeen=new WeakMap();
+ const counterObserver=new IntersectionObserver(entries=>entries.forEach(entry=>{
+  if(!entry.isIntersecting)return;
+  const el=entry.target;counterObserver.unobserve(el);
+  const raw=(el.textContent||"").trim();
+  const match=raw.match(/^(\\D*?)([\\d,]+(?:\\.\\d+)?)(\\D*)$/);
+  if(!match)return;
+  const target=Number(match[2].replace(/,/g,""));
+  if(!Number.isFinite(target)||target===0)return;
+  const previous=counterSeen.get(el);if(previous===raw)return;counterSeen.set(el,raw);
+  const prefix=match[1],suffix=match[3],start=performance.now(),duration=850;
+  el.classList.add("xs-counter-running");
+  function tick(now){
+   const t=Math.min(1,(now-start)/duration), eased=1-Math.pow(1-t,3);
+   const value=target*eased;
+   const decimals=match[2].includes(".")?match[2].split(".")[1].length:0;
+   el.textContent=prefix+value.toLocaleString("en-PK",{minimumFractionDigits:decimals,maximumFractionDigits:decimals})+suffix;
+   if(t<1)requestAnimationFrame(tick);else el.textContent=raw;
+  }
+  requestAnimationFrame(tick);
+ }));
+ function watchCounters(root=document){
+  $(".stat-card strong,.analytics-card strong",root).forEach(el=>{
+   if(el.dataset.xsCounterObserved)return;
+   el.dataset.xsCounterObserved="1";counterObserver.observe(el);
+  });
+ }
+ watchCounters();
+ const counterMutation=new MutationObserver(()=>watchCounters());
+ counterMutation.observe(document.body,{childList:true,subtree:true,characterData:true});
+
+ // Give the cart count a quick, subtle bounce whenever its value changes.
+ const cartCount=$("#cart-count");
+ if(cartCount){
+  let last=cartCount.textContent;
+  new MutationObserver(()=>{
+   const next=cartCount.textContent;
+   if(next!==last){last=next;cartCount.classList.remove("xs-cart-bump");void cartCount.offsetWidth;cartCount.classList.add("xs-cart-bump");}
+  }).observe(cartCount,{childList:true,characterData:true,subtree:true});
+ }
+}
+
 /* Premium interactions: cursor spotlight, 3D product tilt and ambient olive wash. */
 if(!reduce && window.matchMedia("(pointer:fine)").matches){
  const spotlight=document.createElement("div");

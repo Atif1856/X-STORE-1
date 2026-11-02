@@ -60,14 +60,16 @@ if(showIntro){
  document.head.appendChild(introStyle);
  window.setTimeout(()=>{
   intro.style.transition="none";
-   intro.style.background="transparent";
-  intro.innerHTML='<div class="xs-intro-half xs-intro-top"></div><div class="xs-intro-half xs-intro-bottom"></div><div class="xs-intro-center">'+intro.innerHTML+'</div>';
+  intro.style.background="transparent";
+  const split=document.createElement("div");
+  split.className="xs-intro-split";
+  split.innerHTML='<div class="xs-intro-panel xs-intro-panel-top"></div><div class="xs-intro-panel xs-intro-panel-bottom"></div>';
+  intro.innerHTML="";
+  intro.appendChild(split);
   const splitStyle=document.createElement("style");
-  splitStyle.textContent="#xs-brand-intro{overflow:hidden}#xs-brand-intro .xs-intro-half{position:absolute;left:0;width:100%;height:50.5%;background:#EEF0E7;z-index:2;transition:transform .85s cubic-bezier(.76,0,.24,1)}#xs-brand-intro .xs-intro-top{top:0}#xs-brand-intro .xs-intro-bottom{bottom:0}#xs-brand-intro .xs-intro-center{position:relative;z-index:1;opacity:0}#xs-brand-intro.xs-split-open .xs-intro-top{transform:translateY(-102%)}#xs-brand-intro.xs-split-open .xs-intro-bottom{transform:translateY(102%)}#xs-brand-intro.xs-split-open .xs-intro-center{opacity:1}";
+  splitStyle.textContent="#xs-brand-intro{display:block!important;overflow:hidden;background:transparent!important}#xs-brand-intro .xs-intro-split{position:absolute;inset:0;overflow:hidden}#xs-brand-intro .xs-intro-panel{position:absolute;left:0;width:100%;height:50.1%;background:#EEF0E7;will-change:transform}#xs-brand-intro .xs-intro-panel-top{top:0;animation:xsCurtainTop .95s cubic-bezier(.76,0,.24,1) forwards}#xs-brand-intro .xs-intro-panel-bottom{bottom:0;animation:xsCurtainBottom .95s cubic-bezier(.76,0,.24,1) forwards}@keyframes xsCurtainTop{to{transform:translateY(-101%)}}@keyframes xsCurtainBottom{to{transform:translateY(101%)}}";
   document.head.appendChild(splitStyle);
-  void intro.offsetWidth;
-  requestAnimationFrame(()=>requestAnimationFrame(()=>intro.classList.add("xs-split-open")));
-  window.setTimeout(()=>intro.remove(),900);
+  window.setTimeout(()=>intro.remove(),1000);
  },3000);
 }
 

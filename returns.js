@@ -7,13 +7,23 @@ window.addEventListener("load",()=>{
  const c=window.XSTORE_CONFIG;if(!c||!window.supabase)return say("Store setup could not load.");
  client=window.supabase.createClient(c.SUPABASE_URL,c.SUPABASE_ANON_KEY);$("lookup").onclick=lookup;
 });
-async function call(body){const {data,error}=await client.functions.invoke("returns-create",{body});if(error)throw new Error(data?.error||error.message||"Request failed.");if(data?.error)throw new Error(data.error);return data;}
+async function call(body){
+ const {data,error}=await client.functions.invoke("returns-create",{body});
+ if(error){
+  let message="";
+  try{if(error.context&&typeof error.context.json==="function"){const payload=await error.context.json();message=payload?.error||payload?.message||"";}}catch(_){}
+  throw new Error(message||data?.error||"Request failed. Please check your details and try again.");
+ }
+ if(data?.error)throw new Error(data.error);
+ return data;
+}
 async function lookup(){
  const order_number=$("order-number").value.trim(),phone=$("phone").value.trim();
  if(!order_number||!phone)return say("Order number aur checkout phone number dono enter karein.");
  $("lookup").disabled=true;say("Order check ho raha hai…");$("order-result").hidden=true;
  try{const d=await call({action:"lookup",order_number,phone});renderOrder(d.order);say("Order mil gaya. Neeche available action select karein.");}
- catch(e){say(e.message);}finally{$("lookup").disabled=false;}
+ catch(e){say(e.message==="Order details match nahi huin. Order number aur checkout phone dobara check karein."?"Order number ya phone number ghalat hai. Apne order confirmation wala order number aur checkout phone number dobara check karein.":e.message);}
+ finally{$("lookup").disabled=false;}
 }
 function renderOrder(o){
  $("order-result").hidden=false;$("order-title").textContent="Order "+o.order_number;

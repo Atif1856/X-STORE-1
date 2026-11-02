@@ -17,6 +17,13 @@
 .coupon-row input{flex:1;min-width:0;padding:11px 12px;border:1px solid var(--border);background:#fff;border-radius:4px;text-transform:uppercase}
 .coupon-msg{font-size:.82rem;margin:8px 0 0;min-height:1.2em}
 .coupon-msg.ok{color:var(--green)}.coupon-msg.bad{color:var(--danger)}
+.coupon-suggestions{display:grid;gap:8px;margin:10px 0 16px}
+.coupon-suggest-title{font-size:.8rem;font-weight:700;margin:0 0 2px}
+.coupon-suggest-empty{font-size:.78rem;color:var(--muted);margin:0}
+.coupon-suggestion{display:flex;align-items:center;justify-content:space-between;gap:10px;text-align:left;padding:11px 12px;border:1px solid var(--border);border-radius:8px;background:#fff;color:var(--text);cursor:pointer}
+.coupon-suggestion span{display:grid;gap:3px}
+.coupon-suggestion small{font-size:.75rem;color:var(--muted)}
+.coupon-suggestion b{font-size:.8rem;color:var(--green);white-space:nowrap}
 .sum-line{display:flex;justify-content:space-between;gap:12px;padding:9px 0;font-size:.88rem;border-bottom:1px solid var(--border)}
 .discount-text{color:var(--green)}
 .form-error{color:var(--danger);font-size:.88rem;margin:0}
@@ -30,7 +37,7 @@
 @keyframes xspop{from{transform:scale(.85) translateY(20px);opacity:0}to{transform:none;opacity:1}}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script defer src="config.js"></script><script defer src="checkout.js?v=1"></script></head>
+<script defer src="config.js"></script><script defer src="checkout.js?v=2"></script></head>
 <body>
 <header class="site-header"><a class="brand" href="index.html"><img class="brand-logo" src="xstore-mark.svg" alt="X STORE logo" width="287" height="240"><span class="brand-word">STORE</span></a><a href="cart.html">Back to cart</a></header>
 <main class="page-wrap">
@@ -61,6 +68,7 @@
 <label class="coupon-label" for="xs-coupon">Coupon code</label>
 <div class="coupon-row"><input id="xs-coupon" maxlength="30" placeholder="Enter code" autocomplete="off"><button type="button" id="xs-coupon-btn" class="btn btn-outline btn-small">Apply</button></div>
 <p id="xs-coupon-msg" class="coupon-msg" role="status"></p>
+<div id="xs-coupon-suggestions" class="coupon-suggestions" aria-live="polite"></div>
 <div id="xs-totals"></div>
 <p class="small muted">Payment: Cash on Delivery</p>
 </aside>

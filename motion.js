@@ -210,6 +210,44 @@ if(!reduce && window.matchMedia("(pointer:fine)").matches){
  if(productGrid)new MutationObserver(()=>enableTilt(productGrid)).observe(productGrid,{childList:true,subtree:true});
 }
 
+
+/* Advanced motion pack: cinematic scroll, flying add-to-cart, branded loader polish. */
+if(!reduce){
+ const advancedStyle=document.createElement("style");
+ advancedStyle.textContent=
+  "html{scroll-behavior:smooth;scroll-padding-top:92px}"+
+  ".xs-scroll-progress-glow{box-shadow:0 0 10px rgba(166,161,122,.65)}"+
+  ".xs-fly-item{position:fixed;z-index:10050;pointer-events:none;object-fit:contain;border-radius:12px;will-change:transform,opacity;filter:drop-shadow(0 8px 14px rgba(0,0,0,.18))}"+
+  ".xs-cart-arrival{animation:xsCartArrival .55s cubic-bezier(.2,.8,.2,1)}"+
+  "@keyframes xsCartArrival{0%{transform:scale(1)}35%{transform:scale(1.3) rotate(-8deg)}100%{transform:scale(1)}}"+
+  "#xs-brand-intro i{height:3px!important;width:110px!important;border-radius:8px;background:linear-gradient(90deg,#A6A17A,#26352B)!important;box-shadow:0 0 16px rgba(166,161,122,.35)}"+
+  ".xs-reveal{will-change:transform,opacity}"+
+  "@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}";
+ document.head.appendChild(advancedStyle);
+ // Stagger reveal for groups while preserving the existing observer.
+ $(".product-card,.value-card").forEach((el,i)=>{el.style.transitionDelay=(Math.min(i%6,5)*55)+"ms";});
+ // Animate the selected product image toward the cart when Add to Cart is pressed.
+ document.addEventListener("click",event=>{
+  const button=event.target.closest(".add-cart");
+  if(!button)return;
+  const card=button.closest(".product-card");
+  const image=card?.querySelector(".product-image img");
+  const cart=$("#cart-count");
+  if(!image||!cart)return;
+  const start=image.getBoundingClientRect(),end=cart.getBoundingClientRect();
+  if(!start.width||!start.height)return;
+  const flyer=image.cloneNode(true);
+  flyer.className="xs-fly-item";
+  Object.assign(flyer.style,{left:start.left+"px",top:start.top+"px",width:start.width+"px",height:start.height+"px",transition:"transform .72s cubic-bezier(.2,.75,.25,1),opacity .72s ease"});
+  document.body.appendChild(flyer);
+  const dx=(end.left+end.width/2)-(start.left+start.width/2);
+  const dy=(end.top+end.height/2)-(start.top+start.height/2);
+  requestAnimationFrame(()=>{flyer.style.transform="translate("+dx+"px,"+dy+"px) scale(.12) rotate(18deg)";flyer.style.opacity=".15";});
+  window.setTimeout(()=>{flyer.remove();cart.classList.remove("xs-cart-arrival");void cart.offsetWidth;cart.classList.add("xs-cart-arrival");},760);
+  window.setTimeout(()=>cart.classList.remove("xs-cart-arrival"),1400);
+ },true);
+}
+
 document.addEventListener("click",event=>{
  const a=event.target.closest("a[href]");
  if(!a||reduce||event.defaultPrevented||event.button!==0||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey||a.target==="_blank"||a.hasAttribute("download"))return;

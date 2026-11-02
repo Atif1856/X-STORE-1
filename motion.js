@@ -49,7 +49,7 @@ const topButton=document.createElement("button");topButton.id="xs-back-top";topB
 
 
 /* X STORE branded intro: once per browser tab session. */
-let showIntro=!reduce;
+let showIntro=true;
 if(showIntro){
  const intro=document.createElement("div");intro.id="xs-brand-intro";
  Object.assign(intro.style,{position:"fixed",inset:"0",zIndex:"10000",display:"grid",placeItems:"center",background:"#EEF0E7",opacity:"1",transition:"opacity .55s ease",pointerEvents:"auto"});
@@ -91,7 +91,7 @@ if(!reduce&&"IntersectionObserver"in window){
  const seen=new WeakSet();
  const observer=new IntersectionObserver(entries=>entries.forEach(entry=>{if(entry.isIntersecting){entry.target.classList.add("xs-visible");observer.unobserve(entry.target);}}),{threshold:.08,rootMargin:"0px 0px -45px 0px"});
  function reveal(root=document){
-  $$$(selector,root).forEach((el,i)=>{
+  $(selector,root).forEach((el,i)=>{
    if(seen.has(el)||el.closest("header,footer"))return;
    seen.add(el);el.classList.add("xs-reveal");
    if(el.matches(".hero-copy"))el.classList.add("xs-reveal-left");
@@ -105,7 +105,7 @@ if(!reduce&&"IntersectionObserver"in window){
  const grid=$("#product-grid");
  if(grid)new MutationObserver(()=>reveal(grid)).observe(grid,{childList:true,subtree:true});
 }else{
- $$$(".xs-reveal").forEach(el=>el.classList.add("xs-visible"));
+ $(".xs-reveal").forEach(el=>el.classList.add("xs-visible"));
 }
 
 /* Selected premium motions: image reveal, refined page transitions, counters, cart feedback. */

@@ -65,7 +65,7 @@ if(showIntro){
   void intro.offsetHeight;
   requestAnimationFrame(()=>requestAnimationFrame(()=>intro.classList.add("xs-curtain-open")));
   window.setTimeout(()=>intro.remove(),1250);
- },3000);
+ },2000);
 }
 /* Moving announcement ribbon on the home page. */
 if(location.pathname.endsWith("/")||location.pathname.endsWith("/index.html")){

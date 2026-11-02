@@ -176,7 +176,8 @@ footer a:hover{
   color:var(--gold);
 }
 
-.cart-link{font-weight:600}
+.cart-link{font-weight:600;position:relative;z-index:10030;isolation:isolate}
+.cart-link .count{position:relative;z-index:10031;display:inline-grid;transform-origin:center;}
 
 .count{
   display:inline-grid;

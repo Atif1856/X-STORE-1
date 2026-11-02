@@ -2,7 +2,7 @@
 /* X STORE — OFF-WHITE + BLACK + CHAMPAGNE GOLD */
 
 :root {
-  --ivory: #F3F1EA;
+  --ivory: #EEF0E7;
   --ink: #111111;
   --gold: #26352B;
   --gold-light: #A6A17A;
@@ -17,7 +17,7 @@
 }
 
 .site-header {
-  background: rgba(247, 245, 239, 0.90);
+  background: rgba(238, 240, 231, 0.94);
 }
 
 .eyebrow {
@@ -62,15 +62,15 @@
 }
 
 .section {
-  background: linear-gradient(145deg, #FCFBF7, #F2EFE7);
+  background: linear-gradient(145deg, #F3F4EC, #E5EBDD);
 }
 
 .editorial {
-  background: linear-gradient(135deg, #E8E0D2, #F0EBE2);
+  background: linear-gradient(135deg, #E2E9DE, #F0F2E9);
 }
 
 .product-image {
-  background: linear-gradient(145deg, #F0ECE3, #E5DFD3);
+  background: linear-gradient(145deg, #EEF0E7, #DDE5D9);
 }
 
 .product-tag {

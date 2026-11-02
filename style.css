@@ -9,8 +9,8 @@
 :root{
   --ivory:#F3F1EA;
   --ink:#111111;
-  --gold:#B69A6A;
-  --gold-light:#D6C19A;
+  --gold:#26352B;
+  --gold-light:#A6A17A;
   --white:#FFFFFF;
   --border:#DED9CF;
   --muted:#6B6861;
@@ -184,7 +184,7 @@ footer a:hover{
   min-width:23px;
   height:23px;
   border-radius:50%;
-  background:linear-gradient(145deg,#D6C19A,#A88B5D);
+  background:linear-gradient(145deg,#A6A17A,#A88B5D);
   color:#171717;
   font-size:.75rem;
   margin-left:5px;
@@ -556,7 +556,7 @@ select:focus{
   transition:color .25s ease;
 }
 
-.product-info h3 a:hover{color:#8b7246}
+.product-info h3 a:hover{color:#26352B}
 
 .product-desc{
   font-size:.83rem;
@@ -1313,7 +1313,7 @@ body::after {
    X STORE — EDITORIAL COMMERCE REFRESH
    Shared visual layer; existing commerce logic untouched.
 ===================================================== */
-:root{--ivory:#f1f0e8;--ink:#171717;--gold:#c5a46d;--gold-light:#dfc99f;--border:#dedbd1;--muted:#706d65}
+:root{--ivory:#f1f0e8;--ink:#171717;--gold:#26352B;--gold-light:#A6A17A;--border:#dedbd1;--muted:#706d65}
 body{background:#f1f0e8}
 body::before,body::after{opacity:.12;z-index:1}
 .site-header{min-height:76px;padding-inline:clamp(18px,5vw,78px);background:rgba(241,240,232,.96);border-bottom:1px solid #dedbd1;box-shadow:none}
@@ -1326,14 +1326,14 @@ body::before,body::after{opacity:.12;z-index:1}
 .hero-copy h1{font-size:clamp(3.1rem,7.2vw,6.6rem);line-height:.98;letter-spacing:-.065em;font-weight:500}
 .hero-copy h1 em{color:#9c8050}
 .hero-copy>p:not(.eyebrow){max-width:440px;font-size:.98rem;line-height:1.8;color:#69665e}
-.eyebrow{font-size:.66rem;letter-spacing:.2em;color:#8b7146}
+.eyebrow{font-size:.66rem;letter-spacing:.2em;color:#26352B}
 .hero-art{min-height:430px;border:0;border-radius:0;background:linear-gradient(135deg,#ded5c5,#c9b99f);box-shadow:none}
 .hero-orbit{width:310px;height:310px;border-color:rgba(255,255,255,.55);box-shadow:0 0 0 42px rgba(255,255,255,.1),0 0 0 84px rgba(255,255,255,.07)}
-.hero-stamp{width:175px;height:205px;background:#171717;color:#c5a46d;box-shadow:16px 18px 0 rgba(23,23,23,.1);transform:rotate(-4deg)}
+.hero-stamp{width:175px;height:205px;background:#171717;color:#26352B;box-shadow:16px 18px 0 rgba(23,23,23,.1);transform:rotate(-4deg)}
 .hero-art>p{letter-spacing:.23em;color:#50483b}
 .hero-actions{display:flex;align-items:center;gap:24px;flex-wrap:wrap}
 .hero-actions .btn{min-width:190px}
-.hero-text-link,.text-button{font-size:.78rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;border-bottom:1px solid #c5a46d;padding-bottom:5px}
+.hero-text-link,.text-button{font-size:.78rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;border-bottom:1px solid #26352B;padding-bottom:5px}
 .hero-assurance{display:flex;gap:18px;flex-wrap:wrap;margin-top:32px;color:#777166;font-size:.7rem;letter-spacing:.04em}
 .btn{border-radius:0;min-height:48px;padding:14px 22px;letter-spacing:.045em;text-transform:uppercase;font-size:.75rem}
 .btn-dark{background:#171717;box-shadow:none}
@@ -1368,7 +1368,7 @@ body::before,body::after{opacity:.12;z-index:1}
 .product-tag{border-radius:0;box-shadow:none}
 .promise-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:30px;padding:45px clamp(20px,7vw,100px);background:#171717;color:#f1f0e8}
 .promise-strip>div{position:relative;padding-left:40px}
-.promise-strip span{position:absolute;left:0;top:0;color:#c5a46d;font-size:.7rem;letter-spacing:.1em}
+.promise-strip span{position:absolute;left:0;top:0;color:#26352B;font-size:.7rem;letter-spacing:.1em}
 .promise-strip strong{font-size:.85rem;font-weight:600;letter-spacing:.04em}
 .promise-strip p{margin:8px 0 0;color:#bdb8ac;font-size:.75rem;line-height:1.7}
 .editorial{background:#e9e6dc}

@@ -1482,3 +1482,8 @@ footer{background:#F0F0E6;border-top-color:#DADBCF}
 .brand-logo{
   filter:brightness(0) saturate(100%) invert(18%) sepia(13%) saturate(1000%) hue-rotate(85deg) brightness(92%) contrast(92%);
 }
+
+
+/* New X STORE emblem: preserve its olive highlights and square proportions */
+.brand-logo{width:38px;height:38px;object-fit:contain;filter:none!important;border-radius:8px}
+footer .brand-logo{width:42px;height:42px}

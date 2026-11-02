@@ -14,17 +14,17 @@
     .product-page>div:first-child{position:sticky;top:105px}
     .product-page>div:first-child img{width:78%;max-width:468px;max-height:560px;aspect-ratio:4/5;object-fit:contain;border-radius:0;background:#e9e6dc;display:block;margin:0 auto}
     .product-details{padding:22px 0;max-width:520px}
-    .product-details>p:first-child{font-size:.68rem;letter-spacing:.18em;text-transform:uppercase;color:#8b7146;font-weight:700}
+    .product-details>p:first-child{font-size:.68rem;letter-spacing:.18em;text-transform:uppercase;color:#26352B;font-weight:700}
     .product-details h1{font-family:'Playfair Display',serif;font-size:clamp(2.3rem,4vw,3.7rem);font-weight:500;line-height:1.08;letter-spacing:-.035em}
     .product-price{font-size:1.35rem;font-weight:600;letter-spacing:.02em}
     .product-description{color:#69665e;font-size:.92rem;line-height:1.9}
     .product-stock{font-size:.78rem;color:#45634e}
     .product-page .product-actions button{border-radius:0;text-transform:uppercase;letter-spacing:.08em;font-size:.75rem;min-height:50px}
     .product-page button{background:#171717;color:#f1f0e8;border:1px solid #171717;padding:14px 25px}
-    .product-page .buy-now-btn{background:#c5a46d;color:#171717;border-color:#c5a46d}
+    .product-page .buy-now-btn{background:#26352B;color:#171717;border-color:#26352B}
     #product-size{border-radius:0;background:#f8f7f2;border-color:#c9c2b5;max-width:100%}
     .product-page .product-details>p:last-child{margin-top:28px;font-size:.78rem;text-transform:uppercase;letter-spacing:.07em}
-    .product-page .product-details>p:last-child a{border-bottom:1px solid #c5a46d;padding-bottom:4px}
+    .product-page .product-details>p:last-child a{border-bottom:1px solid #26352B;padding-bottom:4px}
     .product-benefits{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:28px 0;padding:18px 0;border-top:1px solid #dedbd1;border-bottom:1px solid #dedbd1}
     .product-benefits span{font-size:.72rem;color:#6b6861}
     .product-benefits strong{display:block;color:#171717;font-size:.75rem;margin-bottom:4px}
@@ -99,7 +99,7 @@
     .product-page button {
       background: #171717;
       color: #f1f0e8;
-      border: 1px solid #b89b62;
+      border: 1px solid #26352B;
       padding: 14px 25px;
       border-radius: 6px;
       cursor: pointer;
@@ -108,7 +108,7 @@
     }
 
     .product-page button:hover:not(:disabled) {
-      background: #b89b62;
+      background: #26352B;
       color: #111;
     }
 
@@ -118,7 +118,7 @@
     }
 
     .product-page .buy-now-btn {
-      background: #b89b62;
+      background: #26352B;
       color: #111;
     }
 
@@ -192,7 +192,7 @@
         `${cfg.CURRENCY || "PKR"} ${Number(value || 0).toLocaleString("en-PK")}`;
 
       const fallback = "data:image/svg+xml," + encodeURIComponent(
-        '<svg xmlns="http://www.w3.org/2000/svg" width="600" height="700"><rect width="100%" height="100%" fill="#f1f0e8"/><text x="50%" y="50%" text-anchor="middle" fill="#b89b62" font-size="50">X STORE</text></svg>'
+        '<svg xmlns="http://www.w3.org/2000/svg" width="600" height="700"><rect width="100%" height="100%" fill="#f1f0e8"/><text x="50%" y="50%" text-anchor="middle" fill="#26352B" font-size="50">X STORE</text></svg>'
       );
 
       if (!productId) {

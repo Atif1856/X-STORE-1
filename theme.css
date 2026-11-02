@@ -4,15 +4,15 @@
 :root {
   --ivory: #F3F1EA;
   --ink: #111111;
-  --gold: #B69A6A;
-  --gold-light: #D6C19A;
+  --gold: #26352B;
+  --gold-light: #A6A17A;
   --white: #FFFFFF;
   --border: #DED9CF;
   --muted: #6B6861;
 }
 
 ::selection {
-  background: #B69A6A;
+  background: #26352B;
   color: #111111;
 }
 
@@ -36,12 +36,12 @@
 .chip.selected,
 .chip:hover {
   background: #171717;
-  border-color: #B69A6A;
+  border-color: #26352B;
   color: #FFFFFF;
 }
 
 .count {
-  background: linear-gradient(145deg, #D6C19A, #A88B5D);
+  background: linear-gradient(145deg, #A6A17A, #A88B5D);
   color: #171717;
 }
 
@@ -58,7 +58,7 @@
 
 .hero-stamp {
   background: linear-gradient(145deg, #252525, #080808);
-  color: #D6C19A;
+  color: #A6A17A;
 }
 
 .section {
@@ -101,7 +101,7 @@
 input:focus,
 textarea:focus,
 select:focus {
-  border-color: #B69A6A;
+  border-color: #26352B;
   outline: 2px solid rgba(182, 154, 106, 0.18);
 }
 
@@ -111,5 +111,5 @@ footer a:hover {
 }
 
 .tab-btn.active {
-  border-color: #B69A6A;
+  border-color: #26352B;
 }

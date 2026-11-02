@@ -48,31 +48,25 @@ const topButton=document.createElement("button");topButton.id="xs-back-top";topB
 }
 
 
-/* X STORE branded intro: once per browser tab session. */
+/* X STORE full-screen split curtain intro */
 let showIntro=true;
 if(showIntro){
- const intro=document.createElement("div");intro.id="xs-brand-intro";
- Object.assign(intro.style,{position:"fixed",inset:"0",zIndex:"10000",display:"grid",placeItems:"center",background:"#EEF0E7",opacity:"1",transition:"opacity .55s ease",pointerEvents:"auto"});
+ const intro=document.createElement("div");
+ intro.id="xs-brand-intro";
+ Object.assign(intro.style,{position:"fixed",inset:"0",zIndex:"10000",display:"grid",placeItems:"center",background:"#EEF0E7",pointerEvents:"auto",overflow:"hidden"});
  intro.innerHTML='<div style="display:grid;justify-items:center;gap:14px;color:#26352B;font:600 12px/1.4 Arial,sans-serif;letter-spacing:.32em"><img src="xstore-mark.svg" alt="" style="width:74px;height:74px;object-fit:contain;animation:xsLogoPop .8s cubic-bezier(.2,.8,.2,1) both"><span>X STORE</span><i style="display:block;width:46px;height:2px;background:#A6A17A;transform-origin:left;animation:xsLoaderLine 1.15s ease both"></i></div>';
  document.body.appendChild(intro);
  const introStyle=document.createElement("style");
- introStyle.textContent="@keyframes xsLogoPop{from{opacity:0;transform:translateY(12px) scale(.88)}to{opacity:1;transform:translateY(0) scale(1)}}@keyframes xsLoaderLine{from{transform:scaleX(0)}to{transform:scaleX(1)}}";
+ introStyle.textContent="@keyframes xsLogoPop{from{opacity:0;transform:translateY(12px) scale(.88)}to{opacity:1;transform:translateY(0) scale(1)}}@keyframes xsLoaderLine{from{transform:scaleX(0)}to{transform:scaleX(1)}}#xs-brand-intro.xs-curtain-stage{display:block!important;background:transparent!important}#xs-brand-intro .xs-curtain-panel{position:absolute;left:0;width:100%;height:50.1%;background:#EEF0E7;transform:translateY(0);transition:transform 1.15s cubic-bezier(.76,0,.24,1);will-change:transform}#xs-brand-intro .xs-curtain-top{top:0}#xs-brand-intro .xs-curtain-bottom{bottom:0}#xs-brand-intro.xs-curtain-open .xs-curtain-top{transform:translateY(-101%)}#xs-brand-intro.xs-curtain-open .xs-curtain-bottom{transform:translateY(101%)}";
  document.head.appendChild(introStyle);
  window.setTimeout(()=>{
-  intro.style.transition="none";
-  intro.style.background="transparent";
-  const split=document.createElement("div");
-  split.className="xs-intro-split";
-  split.innerHTML='<div class="xs-intro-panel xs-intro-panel-top"></div><div class="xs-intro-panel xs-intro-panel-bottom"></div>';
-  intro.innerHTML="";
-  intro.appendChild(split);
-  const splitStyle=document.createElement("style");
-  splitStyle.textContent="#xs-brand-intro{display:block!important;overflow:hidden;background:transparent!important}#xs-brand-intro .xs-intro-split{position:absolute;inset:0;overflow:hidden}#xs-brand-intro .xs-intro-panel{position:absolute;left:0;width:100%;height:50.1%;background:#EEF0E7;will-change:transform}#xs-brand-intro .xs-intro-panel-top{top:0;animation:xsCurtainTop .95s cubic-bezier(.76,0,.24,1) forwards}#xs-brand-intro .xs-intro-panel-bottom{bottom:0;animation:xsCurtainBottom .95s cubic-bezier(.76,0,.24,1) forwards}@keyframes xsCurtainTop{to{transform:translateY(-101%)}}@keyframes xsCurtainBottom{to{transform:translateY(101%)}}";
-  document.head.appendChild(splitStyle);
-  window.setTimeout(()=>intro.remove(),1000);
+  intro.innerHTML='<div class="xs-curtain-panel xs-curtain-top"></div><div class="xs-curtain-panel xs-curtain-bottom"></div>';
+  intro.classList.add("xs-curtain-stage");
+  void intro.offsetHeight;
+  requestAnimationFrame(()=>requestAnimationFrame(()=>intro.classList.add("xs-curtain-open")));
+  window.setTimeout(()=>intro.remove(),1250);
  },3000);
 }
-
 /* Moving announcement ribbon on the home page. */
 if(location.pathname.endsWith("/")||location.pathname.endsWith("/index.html")){
  const ribbon=document.createElement("div");ribbon.className="xs-marquee";ribbon.setAttribute("aria-label","X STORE shopping highlights");

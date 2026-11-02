@@ -1377,3 +1377,102 @@ body::before,body::after{opacity:.12;z-index:1}
 footer{background:#f1f0e8;border-top:1px solid #dedbd1}
 @media(max-width:800px){.category-editorial-grid{grid-template-columns:1fr 1fr}.category-tile-large{grid-column:span 2}.hero-art{min-height:340px}.promise-strip{gap:18px;padding-block:35px}}
 @media(max-width:650px){.hero{padding:55px 20px;min-height:0}.hero-copy h1{font-size:clamp(3rem,13vw,4.6rem)}.hero-art{min-height:285px}.category-editorial{padding:55px 18px}.category-editorial-grid{grid-template-columns:1fr 1fr;gap:9px}.category-tile,.category-tile-large{min-height:205px;padding:17px}.category-tile-large{grid-column:span 2;min-height:230px}.editorial-head{align-items:flex-start;flex-direction:column}.section{padding:55px 18px 65px}.collection-toolbar{align-items:flex-start;flex-direction:column;gap:5px}.promise-strip{grid-template-columns:1fr;gap:22px;padding:32px 22px}.hero-assurance{gap:9px 15px;font-size:.64rem}.hero-actions{gap:16px}}
+
+
+/* =====================================================
+   X STORE — OLIVE PREMIUM THEME
+   Warm ivory | Deep olive | Soft sage
+===================================================== */
+:root{
+  --ivory:#F5F3EA;
+  --ink:#26352B;
+  --gold:#A6A17A;
+  --gold-light:#D5D1B8;
+  --white:#FFFFFF;
+  --border:#DADBCF;
+  --muted:#6F756A;
+  --green:#526B50;
+  --danger:#9B4540;
+  --shadow:0 18px 45px rgba(38,53,43,.09);
+}
+body{
+  color:#26352B;
+  background:#F5F3EA;
+}
+body::before,body::after{
+  opacity:.07;
+  filter:none;
+  mix-blend-mode:multiply;
+}
+.site-header{
+  background:rgba(245,243,234,.97);
+  border-bottom-color:#DADBCF;
+}
+.site-header nav a,.brand{color:#26352B}
+.brand-x,.hero-stamp{
+  background:linear-gradient(145deg,#35483A,#1F2D24);
+  color:#D5D1B8;
+}
+.hero{background:#F5F3EA}
+.hero-copy h1 em,.eyebrow{color:#788365}
+.hero-art{
+  background:linear-gradient(135deg,#DDE0D1,#B9C1AD);
+}
+.hero-orbit{
+  border-color:rgba(91,112,83,.5);
+  box-shadow:0 0 0 42px rgba(91,112,83,.08),0 0 0 84px rgba(91,112,83,.045);
+}
+.hero-stamp{box-shadow:16px 18px 0 rgba(38,53,43,.12)}
+.hero-art>p{color:#52634F}
+.btn-dark{
+  background:#26352B;
+  box-shadow:none;
+}
+.btn-dark:hover{background:#405642;box-shadow:none}
+.btn-outline{border-color:#BFC6B7;color:#26352B}
+.btn-outline:hover{background:#E8EBE0;border-color:#788D72}
+.hero-text-link,.text-button{border-bottom-color:#A6A17A}
+.text-button{color:#526B50}
+.category-editorial{background:#E9EBDD}
+.category-tile{
+  background:linear-gradient(145deg,#D8DDCC,#AEBBA6);
+  color:#26352B;
+}
+.category-tile-large{background:linear-gradient(135deg,#C6D0BB,#879B83)}
+.category-tile-light{background:linear-gradient(145deg,#FBFAF4,#E0E4D8)}
+.category-tile-dark{background:linear-gradient(145deg,#405642,#26352B);color:#F5F3EA}
+.category-tile:after{border-color:rgba(255,255,255,.55)}
+.section{background:#FAF9F4}
+.search-input{border-bottom-color:#AEB7A7}
+.search-input:focus,input:focus,textarea:focus,select:focus{
+  border-color:#879B83;
+  outline-color:rgba(135,155,131,.2);
+  box-shadow:0 0 0 4px rgba(135,155,131,.12);
+}
+.chip.selected,.chip:hover{background:#26352B;border-color:#26352B}
+.product-image{background:#E9EBDD}
+.product-card:hover .product-image{border-color:rgba(120,141,114,.45)}
+.product-tag{
+  background:#F1F2E9;
+  color:#405642;
+  border-color:#C9D0C1;
+}
+.product-info h3 a:hover{color:#607B5C}
+.promise-strip{background:#26352B;color:#F5F3EA}
+.promise-strip span{color:#B9C3A9}
+.promise-strip p{color:#C8D0C2}
+.editorial{background:linear-gradient(135deg,#E9EBDD,#F2F1E8)}
+.contact-strip{background:#E3E6D9}
+footer{background:#F0F0E6;border-top-color:#DADBCF}
+.panel,.stat-card{background:linear-gradient(145deg,#FFFFFF,#F4F5ED);border-color:#E2E5DA}
+.payment-choice{background:linear-gradient(145deg,#F0F2E8,#E4E9DD);border-color:#D4DCCF}
+.notice{background:#F0F2E8;border-color:#D4DCCF;color:#52634F}
+.order-number{background:#E9EBDD}
+.table-wrap th{background:#F0F2E8}
+.status-pill{background:#E7EBDD;color:#405642}
+.tab-btn.active{border-color:#879B83;color:#26352B}
+.success-mark{background:#E5EDDF;color:#456B4A}
+.admin-header .brand small{color:#879B83}
+@media(prefers-reduced-motion:reduce){
+  body::before,body::after{animation:none!important}
+}

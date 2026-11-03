@@ -17,6 +17,10 @@
     .product-details>p:first-child{font-size:.68rem;letter-spacing:.18em;text-transform:uppercase;color:#26352B;font-weight:700}
     .product-details h1{font-family:'Playfair Display',serif;font-size:clamp(2.3rem,4vw,3.7rem);font-weight:500;line-height:1.08;letter-spacing:-.035em}
     .product-price{font-size:1.35rem;font-weight:600;letter-spacing:.02em}
+    .product-current-price{display:inline-block;color:#26352B;font-size:1.55rem;font-weight:800;letter-spacing:.01em}
+    .product-price:has(.product-sale-badge){display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+    .product-old-price{display:inline-block;text-decoration:line-through!important;color:#85877f!important;font-size:1rem!important;font-weight:500;margin:0 2px!important}
+    .product-sale-badge{display:inline-flex;align-items:center;background:#26352B;color:#EEF0E7;padding:6px 9px;font-size:.68rem;font-weight:800;letter-spacing:.06em;border-radius:2px;white-space:nowrap}
     .product-description{color:#69665e;font-size:.92rem;line-height:1.9}
     .product-stock{font-size:.78rem;color:#45634e}
     .product-page .product-actions button{border-radius:0;text-transform:uppercase;letter-spacing:.08em;font-size:.75rem;min-height:50px}
@@ -293,11 +297,17 @@
           return;
         }
 
-        const price = Number(
-          p.sale_price > 0 && p.sale_price < p.price
-            ? p.sale_price
-            : p.price
-        );
+        const regularPrice = Number(p.price);
+        const salePrice = Number(p.sale_price);
+        const hasSale = Number.isFinite(salePrice) &&
+          salePrice > 0 &&
+          Number.isFinite(regularPrice) &&
+          regularPrice > 0 &&
+          salePrice < regularPrice;
+        const price = hasSale ? salePrice : regularPrice;
+        const discountPercent = hasSale
+          ? Math.round((1 - salePrice / regularPrice) * 100)
+          : 0;
 
         const sizes = Array.isArray(p.sizes)
           ? [...new Set(
@@ -331,13 +341,12 @@
 
             <h1>${esc(p.title)}</h1>
 
-            <div class="product-price">
-              ${money(price)}
-
+            <div class="product-price" aria-label="Product price">
+              <span class="product-current-price">${money(price)}</span>
               ${
-                Number(p.sale_price) > 0 &&
-                Number(p.sale_price) < Number(p.price)
-                  ? `<span class="product-old-price">${money(p.price)}</span>`
+                hasSale
+                  ? `<span class="product-old-price">${money(regularPrice)}</span>
+                     <span class="product-sale-badge">-${discountPercent}% OFF</span>`
                   : ""
               }
             </div>

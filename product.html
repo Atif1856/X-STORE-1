@@ -114,15 +114,40 @@
       margin-bottom: 10px;
     }
 
-    #product-size {
+    #product-size,
+    #product-color {
       width: 100%;
       max-width: 280px;
-      padding: 13px;
-      border: 1px solid #b9ad91;
-      border-radius: 6px;
-      background: #f1f0e8;
-      color: #111;
-      font-size: 15px;
+      min-height: 50px;
+      padding: 0 42px 0 16px;
+      border: 1px solid #26352B;
+      border-radius: 0;
+      background-color: #EEF0E7;
+      color: #26352B;
+      font: inherit;
+      font-size: .85rem;
+      font-weight: 600;
+      letter-spacing: .02em;
+      cursor: pointer;
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2326352B' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 16px center;
+      transition: border-color .2s ease, box-shadow .2s ease, background-color .2s ease;
+    }
+
+    #product-size:hover,
+    #product-color:hover {
+      background-color: #FFFFFF;
+      border-color: #171717;
+    }
+
+    #product-size:focus,
+    #product-color:focus {
+      outline: 2px solid rgba(38,53,43,.18);
+      outline-offset: 2px;
+      border-color: #26352B;
     }
 
     .product-actions {

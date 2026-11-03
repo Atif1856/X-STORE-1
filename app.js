@@ -923,10 +923,9 @@
         throw new Error("Enter a valid sale price.");
 
       const sizes=String(fd.get("sizes")||"")
-        .split(",")
-        .map(x=>x.trim())
-        .filter(Boolean)
-        .filter((x,i,a)=>a.indexOf(x)===i);
+        .split(",").map(x=>x.trim()).filter(Boolean).filter((x,i,a)=>a.indexOf(x)===i);
+      const colors=String(fd.get("colors")||"")
+        .split(",").map(x=>x.trim()).filter(Boolean).filter((x,i,a)=>a.indexOf(x.toLowerCase())===i);
 
       const mainFile=fd.get("image");
       const images=[...(form.elements.media_images?.files||[])];
@@ -982,6 +981,7 @@
         image_path,
         image_url,
         sizes,
+        colors,
         is_featured:fd.get("is_featured")==="on",
         is_published:fd.get("is_published")==="on",
         updated_at:new Date().toISOString()
@@ -1161,7 +1161,7 @@
     const body=$("#admin-products");
 
     const {data,error}=await sb.from("products")
-      .select("id,title,price,sale_price,stock,is_published,image_url,image_path,description,short_description,sku,category_id,is_featured,sizes")
+      .select("id,title,price,sale_price,stock,is_published,image_url,image_path,description,short_description,sku,category_id,is_featured,sizes,colors")
       .order("created_at",{ascending:false});
 
     if(error){
@@ -1202,11 +1202,13 @@
           if(f.elements[k]){
             if(f.elements[k].type==="checkbox")f.elements[k].checked=!!v;
             else if(k==="sizes")f.elements[k].value=normalizeSizes(v).join(", ");
+            else if(k==="colors")f.elements[k].value=Array.isArray(v)?v.join(", "):"";
             else f.elements[k].value=v??"";
           }
         });
 
         if(f.elements.sizes)f.elements.sizes.value=normalizeSizes(p.sizes).join(", ");
+        if(f.elements.colors)f.elements.colors.value=Array.isArray(p.colors)?p.colors.join(", "):"";
         f.elements.image.value="";
         f.classList.remove("hidden");
         await loadProductMedia(p.id);

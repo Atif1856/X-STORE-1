@@ -38,7 +38,17 @@
       .product-page .product-actions #add-product-cart{background:#26352B;color:#EEF0E7;border-color:#26352B}
       .product-page .product-actions #buy-now{background:#fff;color:#26352B;border-color:#26352B}
     }
-    .product-benefits{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:28px 0;padding:18px 0;border-top:1px solid #dedbd1;border-bottom:1px solid #dedbd1}
+    .reviews-section{grid-column:1/-1;max-width:900px;width:100%;margin:34px auto 70px;padding:28px;background:#f7f7f1;border:1px solid #d9ddcf}
+    .reviews-section h2{font-family:'Playfair Display',serif;font-size:2rem;color:#26352B}
+    .review-summary{color:#687267;margin:8px 0 20px}
+    .review-list{display:grid;gap:14px;margin:20px 0}
+    .review-card{padding:16px;background:#fff;border:1px solid #e2e5dc}
+    .review-stars{color:#8a7b38;letter-spacing:2px}
+    .review-form{display:grid;gap:12px;max-width:600px;margin-top:22px}
+    .review-form input,.review-form textarea,.review-form select{width:100%;padding:12px;border:1px solid #cbd1c4;background:#fff;color:#26352B}
+    .review-form button{background:#26352B;color:#EEF0E7;padding:13px 18px;border:0;cursor:pointer}
+    #review-message{font-size:.9rem;color:#526B50}
+\n    .product-benefits{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:28px 0;padding:18px 0;border-top:1px solid #dedbd1;border-bottom:1px solid #dedbd1}
     .product-benefits span{font-size:.72rem;color:#6b6861}
     .product-benefits strong{display:block;color:#171717;font-size:.75rem;margin-bottom:4px}
 
@@ -389,11 +399,49 @@
               <a href="index.html#shop">← Continue shopping</a>
             </p>
           </div>
+          <section class="reviews-section" aria-labelledby="reviews-title">
+            <h2 id="reviews-title">Customer Reviews</h2>
+            <p class="review-summary" id="review-summary">Loading customer reviews...</p>
+            <div class="review-list" id="review-list"></div>
+            <h3>Write a Review</h3>
+            <form class="review-form" id="review-form">
+              <input id="review-name" maxlength="60" placeholder="Your name" required>
+              <select id="review-rating" required aria-label="Rating">
+                <option value="">Select rating</option><option value="5">5 - Excellent</option><option value="4">4 - Very good</option><option value="3">3 - Good</option><option value="2">2 - Fair</option><option value="1">1 - Poor</option>
+              </select>
+              <textarea id="review-text" rows="4" maxlength="1000" placeholder="Share your experience" required></textarea>
+              <button type="submit">Submit Review</button>
+              <p id="review-message" aria-live="polite"></p>
+            </form>
+          </section>
         `;
 
         document.getElementById("main-product-image").onerror = function() {
           this.src = fallback;
         };
+
+        // Customer reviews: new submissions stay pending until approved in Supabase.
+        const reviewList=document.getElementById("review-list");
+        const reviewSummary=document.getElementById("review-summary");
+        const reviewForm=document.getElementById("review-form");
+        const reviewMessage=document.getElementById("review-message");
+        async function loadReviews(){
+          const {data,error}=await sb.from("product_reviews").select("customer_name,rating,review_text,created_at").eq("product_id",p.id).eq("is_approved",true).order("created_at",{ascending:false}).limit(30);
+          if(error){reviewSummary.textContent="Reviews are not available yet. Store setup is required.";reviewList.innerHTML="";return;}
+          const rows=data||[];
+          reviewSummary.textContent=rows.length?rows.length+" verified-public review"+(rows.length===1?"":"s"):"No reviews yet. Be the first to review this product.";
+          reviewList.innerHTML=rows.map(row=>`<article class="review-card"><div class="review-stars">${"★".repeat(Math.max(0,Math.min(5,Number(row.rating))))}${"☆".repeat(5-Math.max(0,Math.min(5,Number(row.rating))))}</div><strong>${esc(row.customer_name)}</strong><p>${esc(row.review_text)}</p><small>${new Date(row.created_at).toLocaleDateString("en-PK")}</small></article>`).join("");
+        }
+        reviewForm.addEventListener("submit",async event=>{
+          event.preventDefault();
+          const submit=reviewForm.querySelector("button[type=submit]");
+          submit.disabled=true;reviewMessage.textContent="Submitting...";
+          const {error}=await sb.from("product_reviews").insert({product_id:p.id,customer_name:document.getElementById("review-name").value.trim(),rating:Number(document.getElementById("review-rating").value),review_text:document.getElementById("review-text").value.trim()});
+          submit.disabled=false;
+          if(error){console.error(error);reviewMessage.textContent="Review setup incomplete. Please try again later.";return;}
+          reviewForm.reset();reviewMessage.textContent="Thanks! Your review is submitted and will appear after approval.";
+        });
+        loadReviews();
 
         // Shared cart function for Add to Cart and Buy Now.
         function addProductToCart() {

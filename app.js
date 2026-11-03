@@ -130,7 +130,7 @@
     if(!sb)return {data:[],error:new Error("Supabase is not configured.")};
 
     return sb.from("products")
-      .select("id,title,slug,description,short_description,price,sale_price,sku,stock,image_url,image_path,is_featured,is_published,category_id,sizes,categories(name)")
+      .select("id,title,slug,description,short_description,price,sale_price,sku,stock,image_url,image_path,is_featured,is_published,category_id,sizes,colors,categories(name)")
       .eq("is_published",true)
       .order("created_at",{ascending:false});
   }
@@ -270,7 +270,7 @@
     if(!sb){announceConfig();return;}
 
     const {data,error}=await sb.from("products")
-      .select("id,title,slug,price,sale_price,stock,image_url,image_path,is_published,sizes")
+      .select("id,title,slug,price,sale_price,stock,image_url,image_path,is_published,sizes,colors")
       .eq("id",id)
       .eq("is_published",true)
       .single();
@@ -358,9 +358,13 @@
 
       const size=item.selected_size||null;
       const sizes=normalizeSizes(p.sizes);
+      const color=item.selected_color||null;
+      const colors=Array.isArray(p.colors)?p.colors.map(x=>String(x).trim()).filter(Boolean):[];
 
       if(size&&!sizes.includes(size))continue;
       if(!size&&sizes.length)continue;
+      if(color&&!colors.includes(color))continue;
+      if(!color&&colors.length)continue;
 
       valid.push({
         ...item,
@@ -369,7 +373,8 @@
         stock:p.stock,
         image_url:p.image_url,
         image_path:p.image_path,
-        selected_size:size
+        selected_size:size,
+        selected_color:color
       });
     }
 
@@ -390,6 +395,7 @@
             <div class="cart-item-main">
               <strong>${esc(p.title)}</strong>
               ${p.selected_size?`<span>Size: ${esc(p.selected_size)}</span>`:""}
+              ${p.selected_color?`<span>Color: ${esc(p.selected_color)}</span>`:""}
               <span>${money(p.price)} each</span>
               <div class="qty-control">
                 <button data-qty="-1" data-key="${esc(key)}" data-stock="${Number(p.stock)}" aria-label="Decrease quantity">−</button>

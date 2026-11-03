@@ -101,14 +101,22 @@
       throw new Error("Please enter your city and province.");
     }
 
-    const { data, error } = await sb.rpc("quote_order", {
+    const request = sb.rpc("quote_order", {
       p_items: cartItems(),
       p_coupon: code || null,
       p_city: city,
       p_province: province
     });
 
+    const timeout = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error("Order summary is taking too long. Please refresh the page and try again.")), 15000)
+    );
+
+    const { data, error } = await Promise.race([request, timeout]);
     if (error) throw error;
+    if (!data || typeof data !== "object") {
+      throw new Error("Could not load the order total. Please refresh and try again.");
+    }
     return data;
   }
 
@@ -169,6 +177,10 @@
       submitBtn.disabled = false;
       if (!appliedCode) await loadCouponSuggestions();
     } catch (err) {
+      $("#xs-summary-lines").innerHTML =
+        '<div class="notice" role="alert">We could not load your cart summary. ' +
+        esc(err.message || "Please refresh the page and try again.") +
+        '</div>';
       $("#xs-totals").innerHTML = "";
       $("#xs-total-inline").textContent = "";
       showError(err.message || "Could not calculate delivery charges.");

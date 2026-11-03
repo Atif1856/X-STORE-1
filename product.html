@@ -288,6 +288,7 @@
             image_url,
             image_path,
             sizes,
+            colors,
             is_published,
             categories(name)
           `)
@@ -325,6 +326,8 @@
                 .filter(Boolean)
             )]
           : [];
+
+        const colors = Array.isArray(p.colors) ? [...new Set(p.colors.map(x => String(x).trim()).filter(Boolean))] : [];
 
         let image = p.image_url || fallback;
 
@@ -408,6 +411,21 @@
                       ${sizes.map(size =>
                         `<option value="${esc(size)}">${esc(size)}</option>`
                       ).join("")}
+                    </select>
+                  </div>
+                `
+                : ""
+            }
+
+
+            ${
+              colors.length
+                ? `
+                  <div class="size-section">
+                    <label for="product-color">Select Color *</label>
+                    <select id="product-color">
+                      <option value="">Choose your color</option>
+                      ${colors.map(color => `<option value="${esc(color)}">${esc(color)}</option>`).join("")}
                     </select>
                   </div>
                 `
@@ -515,6 +533,11 @@
           message.textContent = "";
 
           let selectedSize = null;
+          let selectedColor = null;
+          if (colors.length > 0) {
+            selectedColor = document.getElementById('product-color')?.value || '';
+            if (!selectedColor) { message.textContent = 'Please select a color first.'; return false; }
+          }
 
           if (sizes.length > 0) {
             selectedSize = sizeSelect?.value || "";
@@ -536,7 +559,8 @@
 
           const existing = cart.find(item =>
             item.id === p.id &&
-            (item.selected_size || null) === selectedSize
+            (item.selected_size || null) === selectedSize &&
+            (item.selected_color || null) === selectedColor
           );
 
           // Product stock is shared across all sizes.
@@ -561,6 +585,7 @@
               image_url: p.image_url,
               image_path: p.image_path,
               selected_size: selectedSize,
+              selected_color: selectedColor,
               qty: 1
             });
           }
@@ -582,13 +607,10 @@
             const added = addProductToCart();
 
             if (added) {
-              const selectedSize =
-                document.getElementById("product-size")?.value || "";
-
-              document.getElementById("product-message").textContent =
-                selectedSize
-                  ? `Product added to cart. Size: ${selectedSize}`
-                  : "Product added to cart successfully.";
+              const selectedSize = document.getElementById("product-size")?.value || "";
+              const selectedColor = document.getElementById("product-color")?.value || "";
+              const choices = [selectedSize && "Size: " + selectedSize, selectedColor && "Color: " + selectedColor].filter(Boolean);
+              document.getElementById("product-message").textContent = choices.length ? "Product added to cart. " + choices.join(", ") : "Product added to cart successfully.";
             }
           });
 

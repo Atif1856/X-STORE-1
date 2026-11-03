@@ -12,7 +12,16 @@
   <style>
     .product-page{max-width:1240px;margin:38px auto;padding:24px clamp(18px,4vw,55px);display:grid;grid-template-columns:1.08fr .92fr;gap:clamp(28px,5vw,75px);align-items:start}
     .product-page>div:first-child{position:static}
-    .product-page>div:first-child img{width:78%;max-width:468px;max-height:560px;aspect-ratio:4/5;object-fit:contain;border-radius:0;background:#e9e6dc;display:block;margin:0 auto}
+    .product-gallery{width:100%;max-width:520px;margin:0 auto}
+    .product-gallery-main{position:relative}
+    .product-page .product-gallery-main img{width:100%;max-width:468px;max-height:560px;aspect-ratio:4/5;object-fit:contain;border-radius:0;background:#e9e6dc;display:block;margin:0 auto}
+    .gallery-arrow{position:absolute;top:50%;transform:translateY(-50%);width:42px;height:42px;padding:0!important;border:0!important;border-radius:50%!important;background:rgba(38,53,43,.88)!important;color:#fff!important;font-size:24px!important;display:grid;place-items:center;cursor:pointer}
+    .gallery-arrow.prev{left:8px}.gallery-arrow.next{right:8px}
+    .gallery-thumbnails{display:flex;gap:10px;overflow-x:auto;padding:14px 4px 6px;justify-content:center}
+    .gallery-thumb{flex:0 0 72px;width:72px;height:86px;padding:3px!important;border:1px solid #c9c2b5!important;background:#fff!important;border-radius:2px!important;cursor:pointer}
+    .gallery-thumb img{width:100%;height:100%;object-fit:cover;background:#eee}
+    .gallery-thumb.active{border:2px solid #26352B!important}
+    @media(max-width:760px){.gallery-thumbnails{justify-content:flex-start}.gallery-thumb{flex-basis:64px;width:64px;height:76px}}
     .product-details{padding:22px 0;max-width:520px}
     .product-details>p:first-child{font-size:.68rem;letter-spacing:.18em;text-transform:uppercase;color:#26352B;font-weight:700}
     .product-details h1{font-family:'Playfair Display',serif;font-size:clamp(2.3rem,4vw,3.7rem);font-weight:500;line-height:1.08;letter-spacing:-.035em}
@@ -320,20 +329,49 @@
         let image = p.image_url || fallback;
 
         if (!p.image_url && p.image_path) {
-          const result = sb.storage
-            .from("product-images")
-            .getPublicUrl(p.image_path);
-
+          const result = sb.storage.from("product-images").getPublicUrl(p.image_path);
           image = result.data?.publicUrl || fallback;
         }
 
+        // Load extra images uploaded from Admin > Product Media.
+        let galleryImages = [{ url: image, alt: p.title }];
+        const mediaResult = await sb.from("product_media")
+          .select("media_type,storage_path,media_url,sort_order")
+          .eq("product_id", p.id)
+          .eq("media_type", "image")
+          .order("sort_order", { ascending: true });
+
+        if (!mediaResult.error && Array.isArray(mediaResult.data)) {
+          const extraImages = mediaResult.data.map(item => ({
+            url: item.media_url || sb.storage.from("product-media").getPublicUrl(item.storage_path).data?.publicUrl,
+            alt: p.title
+          })).filter(item => item.url);
+          galleryImages = [...galleryImages, ...extraImages];
+        }
+
+        // Avoid showing the main image twice if it is also present in product_media.
+        galleryImages = galleryImages.filter((item, index, all) =>
+          all.findIndex(other => other.url === item.url) === index
+        );
+
         container.innerHTML = `
-          <div>
-            <img
-              id="main-product-image"
-              src="${esc(image)}"
-              alt="${esc(p.title)}"
-            >
+          <div class="product-gallery">
+            <div class="product-gallery-main">
+              <img id="main-product-image" src="${esc(galleryImages[0].url)}" alt="${esc(p.title)}">
+              ${galleryImages.length > 1 ? `
+                <button type="button" class="gallery-arrow prev" id="gallery-prev" aria-label="Previous image">‹</button>
+                <button type="button" class="gallery-arrow next" id="gallery-next" aria-label="Next image">›</button>
+              ` : ""}
+            </div>
+            ${galleryImages.length > 1 ? `
+              <div class="gallery-thumbnails" id="gallery-thumbnails" aria-label="Product images">
+                ${galleryImages.map((item,index) => `
+                  <button type="button" class="gallery-thumb ${index===0?"active":""}" data-gallery-index="${index}" aria-label="View image ${index+1}">
+                    <img src="${esc(item.url)}" alt="">
+                  </button>
+                `).join("")}
+              </div>
+            ` : ""}
           </div>
 
           <div class="product-details">
@@ -425,7 +463,24 @@
           </section>
         `;
 
-        document.getElementById("main-product-image").onerror = function() {
+        const mainProductImage = document.getElementById("main-product-image");
+        let activeGalleryIndex = 0;
+        const showGalleryImage = index => {
+          activeGalleryIndex = (index + galleryImages.length) % galleryImages.length;
+          mainProductImage.src = galleryImages[activeGalleryIndex].url;
+          mainProductImage.alt = `${p.title} - Image ${activeGalleryIndex + 1}`;
+          document.querySelectorAll("[data-gallery-index]").forEach(button => {
+            button.classList.toggle("active", Number(button.dataset.galleryIndex) === activeGalleryIndex);
+          });
+        };
+        document.getElementById("gallery-thumbnails")?.addEventListener("click", event => {
+          const button = event.target.closest("[data-gallery-index]");
+          if (button) showGalleryImage(Number(button.dataset.galleryIndex));
+        });
+        document.getElementById("gallery-prev")?.addEventListener("click", () => showGalleryImage(activeGalleryIndex - 1));
+        document.getElementById("gallery-next")?.addEventListener("click", () => showGalleryImage(activeGalleryIndex + 1));
+
+        mainProductImage.onerror = function() {
           this.src = fallback;
         };
 

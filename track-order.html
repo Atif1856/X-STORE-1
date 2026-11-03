@@ -261,12 +261,7 @@
       const progressSteps=["pending_confirmation","confirmed","processing","shipped","out_for_delivery","delivered"];
       const terminal=["cancelled","returned"].includes(data.status);
       const currentStep=progressSteps.indexOf(data.status);
-      const progressBox=document.getElementById("tracking-progress");
       const completedCount=terminal?0:(currentStep<0?0:currentStep+1);
-      progressBox.innerHTML=terminal
-        ? `<div class="tracking-progress-label"><span>${esc(statusNames[data.status]||data.status)}</span><span>Order closed</span></div>`
-        : progressSteps.slice(0,5).map((step,index)=>`<span class="tracking-progress-step ${index<Math.min(completedCount,5)?"done":""}"></span>`).join("")+
-          `<div class="tracking-progress-label"><span>Placed</span><span>Confirmed</span><span>Processing</span><span>Shipped</span><span>Delivered</span></div>`;
 
       resultBox.innerHTML = `
         <div class="tracking-status">
@@ -298,6 +293,37 @@
           `}
         </div>
       `;
+
+      const progressBox=document.getElementById("tracking-progress");
+      progressBox.innerHTML=terminal
+        ? `<div class="tracking-progress-label"><span>${esc(statusNames[data.status]||data.status)}</span><span>Order closed</span></div>`
+        : progressSteps.slice(0,5).map((step,index)=>`<span class="tracking-progress-step ${index<Math.min(completedCount,5)?"done":""}"></span>`).join("")+
+          `<div class="tracking-progress-label"><span>Placed</span><span>Confirmed</span><span>Processing</span><span>Shipped</span><span>Delivered</span></div>`;
+
+      const notify=document.createElement("button");
+      notify.type="button";
+      notify.textContent="Enable notifications on this device";
+      notify.style.cssText="margin-top:18px;padding:12px 16px;border:0;background:#26352B;color:#EEF0E7;border-radius:8px;cursor:pointer";
+      resultBox.appendChild(notify);
+      notify.addEventListener("click", async () => {
+        if (!("Notification" in window)) { notify.textContent="Browser notifications are not supported."; return; }
+        const permission=await Notification.requestPermission();
+        if(permission!=="granted"){notify.textContent="Notifications were not enabled.";return;}
+        notify.textContent="Notifications enabled while this page stays open";
+        notify.disabled=true;
+        let previousStatus=data.status;
+        const pollId=setInterval(async()=>{
+          if(document.hidden) return;
+          const latest=await db.rpc("track_xstore_order",{p_order_number:orderNumber,p_phone:phone});
+          if(latest.error||!latest.data?.success) return;
+          const nextStatus=latest.data.status;
+          if(nextStatus!==previousStatus){
+            previousStatus=nextStatus;
+            new Notification("X STORE order update",{body:"Your order is now: "+(statusNames[nextStatus]||nextStatus)});
+          }
+          if(["delivered","cancelled","returned"].includes(nextStatus)) clearInterval(pollId);
+        },30000);
+      });
 
     } catch (error) {
       console.error("Tracking error:", error);

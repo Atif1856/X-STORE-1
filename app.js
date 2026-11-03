@@ -213,6 +213,59 @@
     updateFloatingCheckout();
   }
 
+  function showCartDrawer(){
+    let drawer=$("#xs-cart-drawer");
+    if(!drawer){
+      drawer=document.createElement("div");
+      drawer.id="xs-cart-drawer";
+      drawer.innerHTML=`
+        <button class="xs-cart-backdrop" type="button" aria-label="Close cart"></button>
+        <aside class="xs-cart-panel" role="dialog" aria-modal="true" aria-labelledby="xs-cart-title">
+          <div class="xs-cart-head"><div><small>X STORE</small><h2 id="xs-cart-title">Added to your cart</h2></div><button type="button" class="xs-cart-close" aria-label="Close">×</button></div>
+          <div class="xs-cart-drawer-content"></div>
+          <div class="xs-cart-drawer-foot"><a class="xs-cart-view" href="cart.html">View cart</a><a class="xs-cart-checkout" href="checkout.html">Checkout →</a></div>
+        </aside>`;
+      document.body.appendChild(drawer);
+      const style=document.createElement("style");
+      style.textContent=`
+        #xs-cart-drawer{position:fixed;inset:0;z-index:12000;visibility:hidden;pointer-events:none}
+        #xs-cart-drawer.xs-open{visibility:visible;pointer-events:auto}
+        .xs-cart-backdrop{position:absolute;inset:0;width:100%;height:100%;border:0;background:rgba(18,24,19,.42);opacity:0;transition:opacity .28s ease}
+        .xs-cart-panel{position:absolute;top:0;right:0;width:min(420px,92vw);height:100%;height:100dvh;background:#EEF0E7;color:#26352B;box-shadow:-18px 0 50px rgba(0,0,0,.16);transform:translateX(102%);transition:transform .38s cubic-bezier(.22,.72,.18,1);display:flex;flex-direction:column;padding:26px 22px calc(22px + env(safe-area-inset-bottom))}
+        #xs-cart-drawer.xs-open .xs-cart-backdrop{opacity:1}
+        #xs-cart-drawer.xs-open .xs-cart-panel{transform:translateX(0)}
+        .xs-cart-head{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:1px solid rgba(38,53,43,.16);padding-bottom:18px}
+        .xs-cart-head small{font-size:10px;letter-spacing:.2em;color:#8b896f}
+        .xs-cart-head h2{font:500 25px Georgia,serif;margin:7px 0 0}
+        .xs-cart-close{border:0;background:transparent;color:#26352B;font-size:30px;cursor:pointer;line-height:1}
+        .xs-cart-drawer-content{overflow:auto;flex:1;padding:18px 0}
+        .xs-cart-drawer-item{display:grid;grid-template-columns:76px 1fr auto;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid rgba(38,53,43,.12)}
+        .xs-cart-drawer-item img{width:76px;height:86px;object-fit:cover;background:#fff}
+        .xs-cart-drawer-item strong{font-size:13px;line-height:1.4}
+        .xs-cart-drawer-item small{display:block;color:#777968;margin-top:5px}
+        .xs-cart-drawer-item b{font-size:12px;white-space:nowrap}
+        .xs-cart-drawer-total{display:flex;justify-content:space-between;font-weight:700;padding-top:18px}
+        .xs-cart-drawer-foot{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding-top:16px;border-top:1px solid rgba(38,53,43,.16)}
+        .xs-cart-view,.xs-cart-checkout{display:block;text-align:center;text-decoration:none;padding:14px 10px;font-size:12px;font-weight:700;letter-spacing:.04em}
+        .xs-cart-view{border:1px solid #26352B;color:#26352B}
+        .xs-cart-checkout{background:#26352B;color:#EEF0E7}
+        @media(prefers-reduced-motion:reduce){.xs-cart-backdrop,.xs-cart-panel{transition:none}}
+      `;
+      document.head.appendChild(style);
+      const close=()=>{drawer.classList.remove("xs-open");document.body.style.overflow="";};
+      drawer.querySelectorAll(".xs-cart-backdrop,.xs-cart-close").forEach(el=>el.addEventListener("click",close));
+      document.addEventListener("keydown",e=>{if(e.key==="Escape"&&drawer.classList.contains("xs-open"))close();});
+    }
+    const cart=getCart();
+    const total=cart.reduce((n,x)=>n+Number(x.price||0)*Number(x.qty||0),0);
+    drawer.querySelector(".xs-cart-drawer-content").innerHTML=cart.map(item=>{
+      const src=item.image_url||(item.image_path&&sb?sb.storage.from("product-images").getPublicUrl(item.image_path).data.publicUrl:"");
+      return `<div class="xs-cart-drawer-item">${src?`<img src="${esc(src)}" alt="">`:'<div></div>'}<div><strong>${esc(item.title)}</strong><small>Qty: ${Number(item.qty)||1}${item.selected_size?` · Size: ${esc(item.selected_size)}`:""}</small></div><b>${money(Number(item.price||0)*Number(item.qty||0))}</b></div>`;
+    }).join("")+`<div class="xs-cart-drawer-total"><span>Items total</span><strong>${money(total)}</strong></div><small style="display:block;margin-top:8px;color:#777968">Delivery charges are calculated at checkout.</small>`;
+    drawer.classList.add("xs-open");
+    document.body.style.overflow="hidden";
+  }
+
   async function addProductToCart(id){
     if(!sb){announceConfig();return;}
 
@@ -262,6 +315,7 @@
 
     setCart(cart);
     toast("Added to cart.");
+    showCartDrawer();
   }
 
   async function renderCart(){

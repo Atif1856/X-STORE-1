@@ -6,7 +6,8 @@ const $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
 const progress=document.createElement("div");progress.id="xs-progress";document.body.appendChild(progress);
 const topButton=document.createElement("button");topButton.id="xs-back-top";topButton.type="button";topButton.setAttribute("aria-label","Back to top");topButton.innerHTML="↑";document.body.appendChild(topButton);
 
-/* Full-screen dot field; remains visible even with reduced-motion enabled. */
+/* Full-screen dot field: desktop/laptop only. */
+if(!window.matchMedia("(max-width: 760px)").matches){
 {
  const canvas=document.createElement("canvas");
  canvas.id="xs-dot-field";
@@ -45,6 +46,7 @@ const topButton=document.createElement("button");topButton.id="xs-back-top";topB
  window.addEventListener("resize",resize,{passive:true});
  resize();draw();
  document.addEventListener("visibilitychange",()=>{if(document.hidden){cancelAnimationFrame(raf);raf=0;}else if(!raf){draw();}});
+}
 }
 
 

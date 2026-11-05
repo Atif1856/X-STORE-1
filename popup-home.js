@@ -124,6 +124,31 @@
     }
   `;
 
+
+    /* Mobile fix: the page-entry transform was trapping fixed overlays
+       inside the scrolling body. Keep popup truly viewport-fixed. */
+    @media(max-width:650px) {
+      body {
+        animation: none !important;
+        transform: none !important;
+      }
+      .xstore-popup-overlay {
+        position: fixed !important;
+        inset: 0 !important;
+        z-index: 2147483000 !important;
+        padding: 14px !important;
+        align-items: center !important;
+        justify-content: center !important;
+      }
+      .xstore-popup-box {
+        width: min(100%, 420px) !important;
+        max-height: calc(100dvh - 28px) !important;
+        overflow-y: auto !important;
+        overscroll-behavior: contain;
+        margin: auto !important;
+      }
+    }
+
   document.head.appendChild(style);
 
   // -----------------------------

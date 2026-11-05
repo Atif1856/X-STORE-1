@@ -277,5 +277,31 @@
 <div id="toast" class="toast" role="status"></div>
 
 <script defer src="motion.js?v=12"></script>
+<script>
+(function(){
+ if(window.innerWidth<=760)return;
+ function addPreview(){
+  if(document.getElementById("xs-mobile-preview-toggle"))return;
+  var b=document.createElement("button");
+  b.id="xs-mobile-preview-toggle";b.type="button";b.textContent="▯ Mobile Preview";
+  b.style.cssText="position:fixed;top:14px;right:16px;z-index:2147483647;padding:11px 16px;border:1px solid #A6A17A;border-radius:30px;background:#26352B;color:#EEF0E7;font:600 13px Arial;box-shadow:0 5px 20px #0003;cursor:pointer";
+  document.body.appendChild(b);
+  b.onclick=function(){
+   var old=document.getElementById("xs-mobile-preview-layer");
+   if(old){old.remove();b.textContent="▯ Mobile Preview";return;}
+   var layer=document.createElement("div");layer.id="xs-mobile-preview-layer";
+   layer.style.cssText="position:fixed;inset:0;z-index:2147483646;background:rgba(10,15,11,.78);display:flex;align-items:center;justify-content:center;padding:55px 12px 12px";
+   var frame=document.createElement("iframe");frame.title="Mobile website preview";
+   var u=new URL(location.href);u.searchParams.set("xs_mobile_preview","1");frame.src=u.href;
+   frame.style.cssText="width:min(390px,calc(100vw - 24px));height:min(844px,calc(100vh - 70px));border:9px solid #202720;border-radius:28px;background:white";
+   var close=document.createElement("button");close.textContent="Close preview ×";close.type="button";
+   close.style.cssText="position:absolute;top:12px;right:14px;padding:10px 16px;border:0;border-radius:20px;background:#EEF0E7;color:#26352B;font-weight:700;cursor:pointer";
+   close.onclick=function(){layer.remove();b.textContent="▯ Mobile Preview";};
+   layer.append(frame,close);document.body.appendChild(layer);b.textContent="Close Mobile Preview";
+  };
+ }
+ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",addPreview);else addPreview();
+})();
+</script>
 </body>
 </html>

@@ -214,6 +214,41 @@
         width: 100%;
       }
     }
+
+    /* Mobile-only product layout: keep purchase controls beside product info. */
+    @media(max-width:700px){
+      body:has(.product-page)::before,
+      body:has(.product-page)::after{display:none!important;content:none!important}
+
+      .product-page .product-details{
+        display:flex;
+        flex-direction:column;
+        gap:0;
+        padding:8px 0 24px;
+      }
+      .product-page .product-details>p:first-child{order:0;margin-bottom:6px}
+      .product-page .product-details h1{order:1;margin:4px 0 8px}
+      .product-page .product-price{order:2;margin:8px 0 10px}
+      .product-page .product-stock{order:3;margin:4px 0 12px}
+      .product-page .size-section{order:4;margin:10px 0}
+      .product-page .product-actions{order:5;display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:16px 0 8px}
+      .product-page .product-actions button{width:100%;min-width:0;min-height:48px;padding:12px 8px;font-size:.68rem}
+      .product-page #product-message{order:6;margin:4px 0 10px}
+      .product-page .product-description{order:7;margin:14px 0;font-size:.88rem;line-height:1.7}
+      .product-page .product-benefits{order:8;margin:14px 0;padding:14px 0;gap:8px}
+      .product-page .product-details>p:last-child{order:9;margin:14px 0 0}
+
+      /* Keep the mobile purchase bar above page content and safe-area controls. */
+      .product-page .product-actions{
+        position:static;
+        background:transparent;
+        border:0;
+        box-shadow:none;
+        backdrop-filter:none;
+        padding:0;
+      }
+      body:has(.product-page){padding-bottom:20px}
+    }
   </style>
 </head>
 

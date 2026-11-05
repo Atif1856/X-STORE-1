@@ -274,3 +274,31 @@ document.addEventListener("click",event=>{
  window.setTimeout(()=>{location.href=url.href},170);
 });
 })();
+
+/* Desktop-only mobile viewport preview */
+(()=>{
+ if(new URLSearchParams(location.search).has("xs_mobile_preview")) return;
+ if(window.matchMedia("(max-width: 760px)").matches) return;
+ const toggle=document.createElement("button");
+ toggle.type="button";toggle.id="xs-mobile-preview-toggle";
+ toggle.textContent="▯  Mobile Preview";
+ Object.assign(toggle.style,{position:"fixed",top:"14px",right:"16px",zIndex:"2147483000",padding:"11px 16px",border:"1px solid #A6A17A",borderRadius:"999px",background:"#26352B",color:"#EEF0E7",font:"600 13px Arial,sans-serif",boxShadow:"0 5px 20px #0002",cursor:"pointer"});
+ document.body.appendChild(toggle);
+ let layer=null;
+ function close(){if(layer){layer.remove();layer=null;}toggle.textContent="▯  Mobile Preview";}
+ toggle.addEventListener("click",()=>{
+  if(layer){close();return;}
+  layer=document.createElement("div");
+  Object.assign(layer.style,{position:"fixed",inset:"0",zIndex:"2147482999",background:"rgba(15,20,16,.72)",display:"grid",placeItems:"center",padding:"54px 16px 18px"});
+  const frame=document.createElement("iframe");
+  frame.title="X STORE mobile preview";
+  frame.src=location.pathname+location.search+(location.search?"&":"?")+"xs_mobile_preview=1"+location.hash;
+  Object.assign(frame.style,{width:"min(390px, calc(100vw - 32px))",height:"min(844px, calc(100vh - 90px))",border:"10px solid #202720",borderRadius:"28px",background:"#EEF0E7",boxShadow:"0 20px 60px #0008"});
+  const closeBtn=document.createElement("button");
+  closeBtn.type="button";closeBtn.textContent="Close preview  ×";
+  Object.assign(closeBtn.style,{position:"absolute",top:"12px",right:"16px",padding:"10px 15px",border:"0",borderRadius:"20px",background:"#EEF0E7",color:"#26352B",font:"600 13px Arial,sans-serif",cursor:"pointer"});
+  closeBtn.addEventListener("click",close);
+  layer.append(frame,closeBtn);document.body.appendChild(layer);
+  toggle.textContent="✕  Close Mobile Preview";
+ });
+})();
